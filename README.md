@@ -1,36 +1,88 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 🐔 Peckodoro
 
-## Getting Started
+**The perfect study hub.** Peckodoro is a Pomodoro timer with integrated **Spotify controls** and **ChatGPT support**, designed to help you focus smarter, not harder.
 
-First, run the development server:
+---
+
+## 🧠 What is Peckodoro?
+
+Peckodoro blends time management, ambient motivation, and AI-assisted productivity into a lightweight, user-friendly web app. Whether you’re studying, coding, or deep in creative work, Peckodoro helps you stay in the zone.
+
+---
+
+## 🚀 Features
+
+- ⏲️ **Customizable Pomodoro Timer**  
+  Configure Focus, Short Break, and Long Break durations.
+
+- 🎵 **Spotify Integration**  
+  Play, pause, and skip tracks without leaving the app (Spotify Premium required for full control).
+
+- 🤖 **ChatGPT Assistant**  
+  Get study help, generate ideas, or chat with AI while you work. Requires login to use.
+
+- 🌗 **Dark Mode Ready**  
+  Seamlessly adapts for both day and night productivity.
+
+- 🔓 **No-Login Required**  
+  Core features like the timer and music controls are usable without signing in.
+
+---
+
+## 🖥️ Pages Overview
+
+| Page             | Description                                           |
+|------------------|-------------------------------------------------------|
+| `/` (Home)       | Pomodoro Timer, Spotify Player, and ChatGPT preview  |
+| `/login`         | Sign in to access ChatGPT and save preferences       |
+| `/settings`      | Customize timer durations and preferences            |
+| `/about`         | Learn more about the app and its mission             |
+| `/version-history` | See updates and new features as they’re added     |
+
+---
+
+## 📦 Tech Stack
+
+- **Frontend**: React (with Next.js)
+- **Backend**: Node.js + Express (for ChatGPT routing)
+- **Auth**: Firebase (for Spotify & ChatGPT access)
+- **Styling**: Tailwind CSS
+- **AI**: OpenAI GPT-4 API
+- **Music**: Spotify Web API
+
+---
+
+## 🛠️ Getting Started
+
+### 1. Clone the Repository
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/chickenjsx/peckodoro.git
+cd peckodoro
 ```
+### 2. Install Dependencies
+```bash
+NEXT_PUBLIC_SPOTIFY_CLIENT_ID=your_spotify_client_id
+NEXT_PUBLIC_SPOTIFY_REDIRECT_URI=http://localhost:3000/callback
+NEXT_PUBLIC_OPENAI_API_KEY=your_openai_api_key
+```
+###4. Run the App
+```bash
+npm run dev
+```
+✅ To-Do / Roadmap
+✅Basic Pomodoro Timer
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+ Spotify Integration
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+ ChatGPT Access
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+ Save user preferences (dark mode, timer lengths)
 
-## Learn More
+ Cross-platform notifications
 
-To learn more about Next.js, take a look at the following resources:
+ Study stats and analytics (future)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+📄 License
+MIT License. See LICENSE file for details.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
