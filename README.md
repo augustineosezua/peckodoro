@@ -45,10 +45,10 @@ Peckodoro blends time management, ambient motivation, and AI-assisted productivi
 
 - **Frontend**: React (with Next.js)
 - **Backend**: Node.js + Express (for ChatGPT routing)
-- **Auth**: Firebase (for Spotify & ChatGPT access)
 - **Styling**: Tailwind CSS
 - **AI**: OpenAI GPT-4 API
 - **Music**: Spotify Web API
+- **Auth**: NextAuth.js
 
 ---
 
