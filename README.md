@@ -73,11 +73,13 @@ npm run dev
 ✅ To-Do / Roadmap
 ✅Basic Pomodoro Timer
 
+ User Authentication
+ 
+ Save user preferences (dark mode, timer lengths)
+
  Spotify Integration
 
  ChatGPT Access
-
- Save user preferences (dark mode, timer lengths)
 
  Cross-platform notifications
 
