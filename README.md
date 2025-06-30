@@ -71,6 +71,7 @@ NEXT_PUBLIC_OPENAI_API_KEY=your_openai_api_key
 npm run dev
 ```
 ✅ To-Do / Roadmap
+
 ✅Basic Pomodoro Timer
 
  User Authentication
