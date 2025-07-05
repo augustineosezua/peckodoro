@@ -15,18 +15,19 @@ const Timer = (props) => {
   const [playAlarm, setPlayAlarm] = useState(true);
 
   useEffect(() => {
-    let currentSettingMinutes = getCurrentModeMinutes();
-    const newTime = currentSettingMinutes * 60 * 1000;
+    const currentMinutes = getCurrentModeMinutes();
+    const newDuration = currentMinutes * 60 * 1000;
 
-    // Only update timeLeft if the current mode was affected
-    if (timeLeft > newTime || !isRunning) {
-      setMinutes(currentSettingMinutes);
-      setTimeLeft(newTime);
-    }
+    const didDurationChange = Math.abs(timeLeft - newDuration) > 1000;
 
-    if (isRunning) {
-      pauseTimer();
-      continueTimer();
+    if (didDurationChange) {
+      setMinutes(currentMinutes);
+      setTimeLeft(newDuration);
+
+      if (isRunning) {
+        pauseTimer();
+        continueTimer(); // safe to do now
+      }
     }
   }, [settings.focusTime, settings.shortBreak, settings.longBreak]);
 
