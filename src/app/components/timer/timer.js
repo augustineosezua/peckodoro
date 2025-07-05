@@ -23,11 +23,6 @@ const Timer = (props) => {
     if (didDurationChange) {
       setMinutes(currentMinutes);
       setTimeLeft(newDuration);
-
-      if (isRunning) {
-        pauseTimer();
-        continueTimer(); // safe to do now
-      }
     }
   }, [settings.focusTime, settings.shortBreak, settings.longBreak]);
 
@@ -58,7 +53,7 @@ const Timer = (props) => {
   }, [timeLeft, currentMode]);
 
   useEffect(() => {
-    document.title = `Peckodoro - ${currentMode}`
+    document.title = `Peckodoro - ${currentMode}`;
     clearInterval(timerRef.current);
     timerRef.current = null;
     setIsRunning(false);
