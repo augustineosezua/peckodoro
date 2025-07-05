@@ -30,3 +30,8 @@ input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
+
+.glow {
+  box-shadow: 0 0 10px #F4A261, 0 0 15px #F4A26199, 0 0 25px #F4A26166;
+  transition: box-shadow 0.1s;
+}

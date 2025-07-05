@@ -180,7 +180,7 @@ const Timer = (props) => {
         <button
           onClick={!isRunning ? continueTimer : pauseTimer}
           className={`px-14 py-2 rounded-lg shadow-md text-lg cursor-pointer font-[family-name:var(--font-chivo-mono)] ${
-            isRunning ? "bg-[#C86B5A] text-white " : "bg-[#F4A261]"
+            isRunning ? "bg-[#C86B5A] text-white " : "bg-[#F4A261] glow"
           }`}
         >
           {isRunning ? "Pause" : !timerRef.current ? "Start" : "Continue"}
