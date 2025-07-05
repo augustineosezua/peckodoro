@@ -1,25 +1,31 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
+import Head from "next/head";
 import "./versions.css";
 
 const versionHistory = [
+  {
+    version: "v0.1.1",
+    date: "2025-07-05",
+    description:
+      "Added Pomodoro Timer Settings, allows users to customize timer lengths, and allows users to set auto start next timer  as well as sessions before a long break ",
+  },
   {
     version: "v0.1.0",
     date: "2025-06-29",
     description:
       "Added Pomodoro Timer, includes a pause, start, long break, short breaks and a focus timer options.",
   },
-  {
-    version: "v0.1.1",
-    date: "2025-06-29",
-    description:
-      "Added Pomodoro Timer Settings, allows users to customize timer lengths, and allows users to set auto start next timer.",
-  },
+  
 ];
 
 export default function VersionHistoryPage() {
+
   return (
     <main className="max-w-2xl mx-auto p-6 font-[family-name:var(--font-geist-sans)]">
+      <Head>
+        <title>Peckodoro - Versions</title>
+      </Head>
       <h1 className="text-3xl font-bold mb-6 flex justify-between items-end">
         Version History{" "}
         <a href="../" className="text-base">

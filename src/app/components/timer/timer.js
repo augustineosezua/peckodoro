@@ -11,6 +11,7 @@ const Timer = (props) => {
   const [isRunning, setIsRunning] = useState(false);
   const [timeLeft, setTimeLeft] = useState(min * 60 * 1000); // minutes to seconds
   const timerRef = useRef(null);
+  const laspe = useRef(null);
   const startTimeRef = useRef(null);
   const [playAlarm, setPlayAlarm] = useState(true);
 
@@ -18,19 +19,27 @@ const Timer = (props) => {
     const currentMinutes = getCurrentModeMinutes();
     const newDuration = currentMinutes * 60 * 1000;
 
-    // If the current mode's duration was changed
-    const durationChanged =
-      Math.abs(newDuration - getCurrentModeMinutes() * 60 * 1000) > 100;
+   console.log(Math.max(0, newDuration - laspe.current));
+   if(Math.max(0, newDuration - laspe.current) == 0){
+    if (playAlarm) playSound();
+    resetTimer()
+   }
 
-    if (durationChanged) {
-      setMinutes(currentMinutes);
-      setTimeLeft((prev) => {
-        const elapsed = Date.now() - startTimeRef.current;
-        const updatedRemaining = Math.max(newDuration - elapsed, 0);
-        return updatedRemaining;
-      });
+    const didDurationChange =
+      Math.abs(timeLeft - newDuration) > 100 ||
+      Math.abs(timeLeft - newDuration) < 100;
+
+    if (didDurationChange && startTimeRef.current && isRunning) {
+      pauseTimer();
+      setTimeLeft(Math.max(0, newDuration - laspe.current));
+    }else{
+      setTimeLeft(newDuration)
     }
-  }, [settings.focusTime, settings.shortBreak, settings.longBreak]);
+  }, [
+    currentMode === "Focus Time" ? settings.focusTime : null,
+    currentMode === "Short Break" ? settings.shortBreak : null,
+    currentMode === "Long Break" ? settings.longBreak : null,
+  ]);
 
   const getCurrentModeMinutes = () => {
     switch (currentMode) {
@@ -53,13 +62,21 @@ const Timer = (props) => {
   }, []);
 
   useEffect(() => {
+    laspe.current += 300;
     const min = Math.floor(timeLeft / 60000);
     const sec = String(Math.floor((timeLeft % 60000) / 1000)).padStart(2, "0");
     document.title = `${min}:${sec} – ${currentMode}`;
-  }, [timeLeft, currentMode]);
+    if (timeLeft === 0 && isRunning) {
+      setIsRunning(false);
+      if (playAlarm) playSound();
+      setTimeout(() => {
+        resetTimer();
+      }, 300);
+    }
+  }, [timeLeft]);
 
   useEffect(() => {
-    document.title = `Peckodoro - ${currentMode}`;
+    laspe.current = null;
     clearInterval(timerRef.current);
     timerRef.current = null;
     setIsRunning(false);
@@ -88,16 +105,6 @@ const Timer = (props) => {
     return () => clearInterval(timerRef.current);
   }, [isRunning]);
 
-  useEffect(() => {
-    if (timeLeft === 0 && isRunning) {
-      setIsRunning(false);
-      if (playAlarm) playSound();
-      setTimeout(() => {
-        resetTimer();
-      }, 300);
-    }
-  }, [timeLeft]);
-
   const getNextMode = () => {
     if (currentMode === "Focus Time") focusDone.current++;
 
@@ -108,6 +115,7 @@ const Timer = (props) => {
   };
 
   const resetTimer = () => {
+    laspe.current = null;
     const next = getNextMode();
     if (next === "Long Break") focusDone.current = 0;
     setCurrentMode(next);
@@ -171,7 +179,7 @@ const Timer = (props) => {
       <div className="py-3">
         <button
           onClick={!isRunning ? continueTimer : pauseTimer}
-          className={`px-14 py-2 rounded-lg shadow-md text-lg cursor-pointer ${
+          className={`px-14 py-2 rounded-lg shadow-md text-lg cursor-pointer font-[family-name:var(--font-chivo-mono)] ${
             isRunning ? "bg-[#C86B5A] text-white " : "bg-[#F4A261]"
           }`}
         >
