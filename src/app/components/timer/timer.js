@@ -18,11 +18,17 @@ const Timer = (props) => {
     const currentMinutes = getCurrentModeMinutes();
     const newDuration = currentMinutes * 60 * 1000;
 
-    const didDurationChange = Math.abs(timeLeft - newDuration) > 1000;
+    // If the current mode's duration was changed
+    const durationChanged =
+      Math.abs(newDuration - getCurrentModeMinutes() * 60 * 1000) > 100;
 
-    if (didDurationChange) {
+    if (durationChanged) {
       setMinutes(currentMinutes);
-      setTimeLeft(newDuration);
+      setTimeLeft((prev) => {
+        const elapsed = Date.now() - startTimeRef.current;
+        const updatedRemaining = Math.max(newDuration - elapsed, 0);
+        return updatedRemaining;
+      });
     }
   }, [settings.focusTime, settings.shortBreak, settings.longBreak]);
 
