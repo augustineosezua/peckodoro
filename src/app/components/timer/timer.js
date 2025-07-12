@@ -6,7 +6,7 @@ const Timer = (props) => {
   const { settings } = props;
   const focusDone = useRef(0);
   const sequenceSet = useRef(false);
-  const [currentMode, setCurrentMode] = useState(); // default to focus
+  const [currentMode, setCurrentMode] = useState("Focus Time"); // default to focus
   const [min, setMinutes] = useState(settings.focusTime);
   const [isRunning, setIsRunning] = useState(false);
   const [timeLeft, setTimeLeft] = useState(min * 60 * 1000); // minutes to seconds
@@ -18,8 +18,6 @@ const Timer = (props) => {
   useEffect(() => {
     const currentMinutes = getCurrentModeMinutes();
     const newDuration = currentMinutes * 60 * 1000;
-
-   console.log(Math.max(0, newDuration - laspe.current));
    if(Math.max(0, newDuration - laspe.current) == 0){
     if (playAlarm) playSound();
     resetTimer()

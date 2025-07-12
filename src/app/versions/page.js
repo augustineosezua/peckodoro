@@ -5,6 +5,12 @@ import "./versions.css";
 
 const versionHistory = [
   {
+    version: "v0.1.2",
+    date: "2025-07-05",
+    description:
+      "Added user accounts, sign in, sign out, and delete account functionality. Also added user settings to customize the Pomodoro timer. Reset passwords added aswell",
+  },
+  {
     version: "v0.1.1",
     date: "2025-07-05",
     description:
@@ -16,7 +22,6 @@ const versionHistory = [
     description:
       "Added Pomodoro Timer, includes a pause, start, long break, short breaks and a focus timer options.",
   },
-  
 ];
 
 export default function VersionHistoryPage() {

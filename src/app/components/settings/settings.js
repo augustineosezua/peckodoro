@@ -1,13 +1,16 @@
 "use client";
-import { useState } from "react";
+import { authClient } from "@/app/lib/auth-client";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 const Settings = (props) => {
-  const { settings, setShowSettings, setSettings } = props;
+  const { settings, setShowSettings, setSettings, session } = props;
   // prettier-ignore
   const [focusBeforeLong, setFocusBeforeLong] = useState(settings.focusBeforeLong);
   const [focusTime, setFocusTime] = useState(settings.focusTime);
   const [shortBreak, setShortBreak] = useState(settings.shortBreak);
   const [longBreak, setLongBreak] = useState(settings.longBreak);
   const [autoStart, setAutoStart] = useState(settings.autoStart);
+  const [userEmail, setUserEmail] = useState(session?.user?.email || "");
 
   const handleChange = (e) => {
     const input = e.target.value;
@@ -52,15 +55,28 @@ const Settings = (props) => {
     }
   };
 
-  const updateSetting = () =>{
+  const updateSetting = () => {
     setSettings({
-      focusTime: focusTime,
-      shortBreak: shortBreak,
-      longBreak: longBreak,
-      focusBeforeLong: focusBeforeLong,
-      autoStart: autoStart,
+      focusTime: focusTime || 25,
+      shortBreak: shortBreak || 5,
+      longBreak: longBreak || 15,
+      focusBeforeLong: focusBeforeLong || 3,
+      autoStart: autoStart || false,
+      userId: settings.userId,
     });
-  }
+  };
+
+  const deleteUser = async () => {
+    authClient.deleteUser({
+      onError: (ctx) => {
+        toast.error("Error deleting account");
+      },
+      onSuccess: (ctx) => {
+        toast.success("Account deleted successfully");
+        setShowSettings(false);
+      },
+    });
+  };
 
   return (
     <div className="flex flex-col items-center justify-center absolute top-0 w-screen h-screen bg-black/15 font-[family-name:var(--font-geist-sans)]">
@@ -171,7 +187,7 @@ const Settings = (props) => {
             </div>
           </div>
         </div>
-        <div className="w-full flex flex-col justify-start items-center grow pt-10 text-white">
+        <div className="w-full flex justify-center items-center gap-4 py-10 text-white">
           <button
             className="p-4 cursor-pointer bg-[#54494B] rounded-2xl"
             onClick={() => {
@@ -181,6 +197,15 @@ const Settings = (props) => {
           >
             Save Settings
           </button>
+          <button
+            onClick={() => deleteUser()}
+            className="p-4 cursor-pointer bg-[#C86B5A] text-black rounded-2xl"
+          >
+            Delete Account
+          </button>
+        </div>
+        <div className="font-semibold w-full flex justify-center">
+          {userEmail ? userEmail : " Not Logged In"}
         </div>
       </div>
     </div>
