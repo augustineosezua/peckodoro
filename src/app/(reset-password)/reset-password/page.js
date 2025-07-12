@@ -4,7 +4,7 @@ import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-export default function resetPassword({ params }) {
+export default function ResetPassword({ params }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
 
