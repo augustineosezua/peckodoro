@@ -57,7 +57,7 @@ export const reactPasswordChangedEmail = ({ username }) => {
               <p style={{ margin: "0 0 20px" }}>
                 If you did <strong>not</strong> change your password, please
                 contact support immediately or reset your password using the
-                “Reset Now" link on the login page.
+                "Reset Now" link on the login page.
               </p>
             </td>
           </tr>
