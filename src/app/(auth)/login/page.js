@@ -100,6 +100,7 @@ export default function LoginPage() {
                   id: "signing-up",
                 }
               );
+              console.log(ctx)
             },
           }
         );
