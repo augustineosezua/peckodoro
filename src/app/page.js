@@ -38,7 +38,7 @@ export default function Home() {
     focusBeforeLong: 3,
     autoStart: false,
   });
-  const [spotifyAccessToken, setSpotifyAccessToken] = useState(null);
+  const [spotifyExists, setSpotifyExists] = useState(null);
 
   useEffect(() => {
     toast.loading("Loading...", {
@@ -135,9 +135,12 @@ export default function Home() {
       body: JSON.stringify({ userId: session.user.id }),
     });
 
+    if (!res.ok) {
+      return;
+    }
+
     const json = await res.json();
-    console.log("Spotify Response:", json);
-    setSpotifyAccessToken(json.accessToken);
+    setSpotifyExists(true);
   };
 
   return (
@@ -152,9 +155,9 @@ export default function Home() {
       <div className="w-full">
         <Timer settings={settings} />
       </div>
-      {spotifyAccessToken ? (
+      {spotifyExists ? (
         <div className="w-full flex justify-center">
-          <SpotifyPlayer accessToken={spotifyAccessToken} />
+          <SpotifyPlayer session={session} />
         </div>
       ) : null}
 

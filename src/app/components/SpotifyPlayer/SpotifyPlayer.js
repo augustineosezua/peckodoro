@@ -18,7 +18,8 @@ function msToMinSec(ms) {
   return `${min}:${sec.toString().padStart(2, "0")}`;
 }
 
-export default function SpotifyPlayer({ accessToken }) {
+export default function SpotifyPlayer(props) {
+  const session = {props};
   const [player, setPlayer] = useState(null);
   const [device, setDevice] = useState(null);
   const [is_paused, setPaused] = useState(false);
@@ -26,12 +27,9 @@ export default function SpotifyPlayer({ accessToken }) {
   const [current_track, setTrack] = useState(track);
   const deviceId = useRef(null);
   const [isCurrentDevice, setIsCurrentDevice] = useState(false);
-  const accessTokenRef = useRef(accessToken);
+  const accessTokenRef = useRef(null);
 
-  useEffect(() => {
-    accessTokenRef.current = accessToken;
-  }, [accessToken]);
-  let testExpireAt = Date.now() + 10000;
+
   useEffect(() => {
     const script = document.createElement("script");
     script.src = "https://sdk.scdn.co/spotify-player.js";
