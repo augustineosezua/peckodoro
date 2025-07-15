@@ -40,6 +40,7 @@ export default function SpotifyPlayer(props) {
       const player = new window.Spotify.Player({
         name: "Peckodoro",
         getOAuthToken: async (cb) => {
+          console.log(session)
           const response = await fetch("/api/spotify/refresh", {
             method: "POST",
             headers: {
