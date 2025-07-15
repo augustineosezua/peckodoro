@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import TrackCard from "./TrackCard";
 import Image from "next/image";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -92,6 +91,12 @@ export default function SpotifyPlayer({ accessToken }) {
       });
 
       player.connect();
+    };
+    return () => {
+      document.body.removeChild(script);
+      if (player) {
+        player.disconnect();
+      }
     };
   }, [accessToken]);
 
