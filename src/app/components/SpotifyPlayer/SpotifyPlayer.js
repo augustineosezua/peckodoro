@@ -42,12 +42,7 @@ export default function SpotifyPlayer({ accessToken }) {
       const player = new window.Spotify.Player({
         name: "Peckodoro",
         getOAuthToken: (cb) => {
-          if (Date.now() > testExpireAt) {
-            console.warn("Providing fake/expired token");
-            cb("invalid_token"); // this will cause authentication_error
-          } else {
-            cb(accessTokenRef.current);
-          }
+          cb("accessTokenRef");
         },
         volume: 0.15,
       });
