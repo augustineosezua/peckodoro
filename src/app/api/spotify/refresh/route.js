@@ -13,7 +13,7 @@ export async function POST(request) {
   let refreshToken = result?.refreshToken;
   const params = new URLSearchParams();
   params.append("grant_type", "refresh_token");
-  params.append("refresh_token", decrypt(refreshToken, process.env.ENCRYPTION_KEY));
+  params.append("refresh_token", refreshToken);
   const res = await fetch("https://accounts.spotify.com/api/token", {
     method: "POST",
     headers: {
@@ -26,8 +26,8 @@ export async function POST(request) {
   });
   const json = await res.json();
   if (!json.error) {
-    accessToken = encrypt(json.access_token, process.env.ENCRYPTION_KEY);
-    refreshToken = encrypt(json.refresh_token, process.env.ENCRYPTION_KEY);
+    accessToken = json.access_token;
+    refreshToken = json.refresh_token;
     await prisma.account.updateMany({
       where: { userId: userId, providerId: "spotify" },
       data: {
@@ -39,6 +39,6 @@ export async function POST(request) {
   }
 
   return NextResponse.json({
-    accessToken: decrypt(accessToken, process.env.ENCRYPTION_KEY),
+    accessToken: accessToken,
   });
 }

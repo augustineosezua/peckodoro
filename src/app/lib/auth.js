@@ -94,27 +94,6 @@ export const auth = betterAuth({
       }
     }),
   },
-  databaseHooks: {
-    account: {
-      create: {
-        before(account, context) {
-          console.log(account);
-          const withEncryptedTokens = { ...account };
-          if (account.accessToken) {
-            const encryptedAccessToken = encrypt(account.accessToken, process.env.ENCRYPTION_KEY);
-            withEncryptedTokens.accessToken = encryptedAccessToken;
-          }
-          if (account.refreshToken) {
-            const encryptedRefreshToken = encrypt(account.refreshToken, process.env.ENCRYPTION_KEY);
-            withEncryptedTokens.refreshToken = encryptedRefreshToken;
-          }
-          return {
-            data: withEncryptedTokens,
-          };
-        },
-      },
-    },
-  },
   account: {
     accountLinking: {
       enabled: true,

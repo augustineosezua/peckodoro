@@ -19,6 +19,6 @@ export async function POST(request) {
   }
 
   return NextResponse.json({
-    accessToken: decrypt(accessToken, process.env.ENCRYPTION_KEY),
+    accessToken: accessToken
   });
 }
