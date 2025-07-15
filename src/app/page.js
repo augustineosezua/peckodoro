@@ -11,6 +11,7 @@ import {
   authClient, // available but not used here
 } from "@/app/lib/auth-client";
 import { Toaster, toast } from "sonner";
+import SpotifyPlayer from "./components/SpotifyPlayer/SpotifyPlayer";
 
 function shallowEqual(obj1, obj2) {
   const keysA = Object.keys(obj1);
@@ -37,17 +38,18 @@ export default function Home() {
     focusBeforeLong: 3,
     autoStart: false,
   });
+  const [spotifyAccessToken, setSpotifyAccessToken] = useState(null);
 
   useEffect(() => {
     toast.loading("Loading...", {
       id: "loading",
     });
-    console.log("session change");
     const checkSession = async () => {
       if (session) {
         toast.loading("Loading Settings...", {
           id: "loading",
         });
+        console.log("Session:", session);
         const response = await fetch(`/api/settings/${session.user.id}`);
         if (response.ok) {
           const savedSettings = await response.json();
@@ -62,6 +64,7 @@ export default function Home() {
           setSettings(savedSettings);
           ogSettings.current = savedSettings;
           toast.dismiss("loading");
+          await spotifyHandler();
         } else {
           toast.error("Failed to load settings.", {
             id: "loading",
@@ -123,6 +126,20 @@ export default function Home() {
     updateSettings();
   }, [settings]);
 
+  const spotifyHandler = async () => {
+    const res = await fetch("/api/spotify", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userId: session.user.id }),
+    });
+
+    const json = await res.json();
+    console.log("Spotify Response:", json);
+    setSpotifyAccessToken(json.accessToken);
+  };
+
   return (
     <div className="main">
       <div className="flex w-screen font-[family-name:var(--font-geist-sans)]">
@@ -135,6 +152,12 @@ export default function Home() {
       <div className="w-full">
         <Timer settings={settings} />
       </div>
+      {spotifyAccessToken ? (
+        <div className="w-full flex justify-center">
+          <SpotifyPlayer accessToken={spotifyAccessToken} />
+        </div>
+      ) : null}
+
       {showSettings ? (
         <Settings
           setShowSettings={setShowSettings}
