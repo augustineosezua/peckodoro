@@ -93,7 +93,7 @@ export default function SpotifyPlayer({ accessToken }) {
 
       player.connect();
     };
-  }, []);
+  }, [accessToken]);
 
   const activateDevices = async (accessToken, deviceIds) => {
     const response = await fetch("https://api.spotify.com/v1/me/player", {
