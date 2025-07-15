@@ -41,8 +41,23 @@ export default function SpotifyPlayer({ accessToken }) {
     window.onSpotifyWebPlaybackSDKReady = () => {
       const player = new window.Spotify.Player({
         name: "Peckodoro",
-        getOAuthToken: (cb) => {
-          cb("accessTokenRef");
+        getOAuthToken: async (cb) => {
+          const response = await fetch("/api/spotify/refresh", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ userId: session.user.id }),
+          });
+          const json = await response.json();
+          if (json.accessToken) {
+            accessTokenRef.current = json.accessToken;
+            console.log("Access token refreshed successfully.");
+          } else {
+            toast.error("Failed to refresh Spotify access token, please refresh the page.");
+          }
+
+          cb(accessTokenRef.current);
         },
         volume: 0.15,
       });
