@@ -71,28 +71,28 @@ export default function SpotifyPlayer({ accessToken }) {
           !state ? setActive(false) : setActive(true);
         });
       });
+      player.on("authentication_error", () => {
+        const reset = async () => {
+          const response = await fetch("/api/spotify/refresh", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ userId: session.user.id }),
+          });
+          const json = await response.json();
+          if (json.accessToken) {
+            accessToken = json.accessToken;
+          } else {
+            toast.error("Failed to refresh Spotify access token");
+          }
+        };
+
+        reset();
+      });
 
       player.connect();
     };
-
-    timeRef.current = setInterval(
-      async () => {
-        const response = await fetch("/api/spotify/refresh", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ userId: session.user.id }),
-        });
-        const json = await response.json();
-        if (json.accessToken) {
-          accessToken = json.accessToken;
-        } else {
-          toast.error("Failed to refresh Spotify access token");
-        }
-      },
-      1000 * 58 * 60
-    );
   }, []);
 
   const activateDevices = async (accessToken, deviceIds) => {
@@ -183,7 +183,7 @@ export default function SpotifyPlayer({ accessToken }) {
             title="Play/Pause"
             onClick={async () => {
               await player.togglePlay();
-              console.log('player');
+              console.log("player");
             }}
           >
             {is_paused ? "▶️" : "⏸️"}
