@@ -31,14 +31,13 @@ export default function SpotifyPlayer({ accessToken }) {
   useEffect(() => {
     accessTokenRef.current = accessToken;
   }, [accessToken]);
-
+  let testExpireAt = Date.now() + 10000;
   useEffect(() => {
     const script = document.createElement("script");
     script.src = "https://sdk.scdn.co/spotify-player.js";
     script.async = true;
 
     document.body.appendChild(script);
-    let testExpireAt = Date.now() + 10000;
     window.onSpotifyWebPlaybackSDKReady = () => {
       const player = new window.Spotify.Player({
         name: "Peckodoro",
