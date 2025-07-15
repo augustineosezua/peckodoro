@@ -57,7 +57,7 @@ export default function SpotifyPlayer({ accessToken }) {
       player.addListener("ready", ({ device_id }) => {
         console.log("Ready with Device ID", device_id);
         deviceId.current = device_id;
-        activateDevices(accessToken, [device_id]);
+        activateDevices([device_id]);
       });
 
       player.addListener("not_ready", ({ device_id }) => {
@@ -105,13 +105,13 @@ export default function SpotifyPlayer({ accessToken }) {
         player.disconnect();
       }
     };
-  }, [accessToken]);
+  }, []);
 
-  const activateDevices = async (accessToken, deviceIds) => {
+  const activateDevices = async (deviceIds) => {
     const response = await fetch("https://api.spotify.com/v1/me/player", {
       method: "PUT",
       headers: {
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: `Bearer ${accessTokenRef.current}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -130,7 +130,7 @@ export default function SpotifyPlayer({ accessToken }) {
 
   const swithBackToPlayer = async () => {
     if (!player) return;
-    activateDevices(accessToken, [deviceId.current]);
+    activateDevices(accessTokenRef.current, [deviceId.current]);
   };
 
   useEffect(() => {
