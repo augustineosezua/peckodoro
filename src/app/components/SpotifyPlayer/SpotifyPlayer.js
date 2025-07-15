@@ -38,11 +38,17 @@ export default function SpotifyPlayer({ accessToken }) {
     script.async = true;
 
     document.body.appendChild(script);
+    let testExpireAt = Date.now() + 10000;
     window.onSpotifyWebPlaybackSDKReady = () => {
       const player = new window.Spotify.Player({
         name: "Peckodoro",
         getOAuthToken: (cb) => {
-          cb(accessTokenRef.current);
+          if (Date.now() > testExpireAt) {
+            console.warn("Providing fake/expired token");
+            cb("invalid_token"); // this will cause authentication_error
+          } else {
+            cb(accessTokenRef.current);
+          }
         },
         volume: 0.15,
       });
@@ -74,7 +80,7 @@ export default function SpotifyPlayer({ accessToken }) {
           !state ? setActive(false) : setActive(true);
         });
       });
-      player.on("authentication_error", async () => {
+      player.addListener("authentication_error", async () => {
         console.warn("Authentication error, refreshing token...");
         const response = await fetch("/api/spotify/refresh", {
           method: "POST",
