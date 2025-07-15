@@ -85,7 +85,8 @@ export default function SpotifyPlayer({ accessToken }) {
         });
         const json = await response.json();
         if (json.accessToken) {
-          accessToken = json.accessToken;
+          accessTokenRef.current = json.accessToken;
+          console.log("Access token refreshed successfully.");
         } else {
           toast.error("Failed to refresh Spotify access token, please refresh the page.");
         }
