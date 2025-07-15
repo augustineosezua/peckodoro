@@ -26,7 +26,11 @@ export default function SpotifyPlayer({ accessToken }) {
   const [current_track, setTrack] = useState(track);
   const deviceId = useRef(null);
   const [isCurrentDevice, setIsCurrentDevice] = useState(false);
-  const timeRef = useRef(null);
+  const accessTokenRef = useRef(accessToken);
+
+  useEffect(() => {
+    accessTokenRef.current = accessToken;
+  }, [accessToken]);
 
   useEffect(() => {
     const script = document.createElement("script");
@@ -38,7 +42,7 @@ export default function SpotifyPlayer({ accessToken }) {
       const player = new window.Spotify.Player({
         name: "Peckodoro",
         getOAuthToken: (cb) => {
-          cb(accessToken);
+          cb(accessTokenRef.current);
         },
         volume: 0.15,
       });
@@ -70,24 +74,21 @@ export default function SpotifyPlayer({ accessToken }) {
           !state ? setActive(false) : setActive(true);
         });
       });
-      player.on("authentication_error", () => {
-        const reset = async () => {
-          const response = await fetch("/api/spotify/refresh", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ userId: session.user.id }),
-          });
-          const json = await response.json();
-          if (json.accessToken) {
-            accessToken = json.accessToken;
-          } else {
-            toast.error("Failed to refresh Spotify access token");
-          }
-        };
-
-        reset();
+      player.on("authentication_error", async () => {
+        console.warn("Authentication error, refreshing token...");
+        const response = await fetch("/api/spotify/refresh", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ userId: session.user.id }),
+        });
+        const json = await response.json();
+        if (json.accessToken) {
+          accessToken = json.accessToken;
+        } else {
+          toast.error("Failed to refresh Spotify access token, please refresh the page.");
+        }
       });
 
       player.connect();
@@ -132,43 +133,28 @@ export default function SpotifyPlayer({ accessToken }) {
 
   const albumImg = current_track?.album?.images?.[0]?.url || "";
   const songName = current_track?.name || "Song Name";
-  const artists =
-    current_track?.artists?.map((a) => a.name).join(", ") || "Artist";
+  const artists = current_track?.artists?.map((a) => a.name).join(", ") || "Artist";
   const albumName = current_track?.album?.name || "Album";
   const posMs = typeof position === "number" ? position : 0;
-  const totalMs =
-    typeof duration === "number" ? duration : current_track?.duration_ms || 0;
+  const totalMs = typeof duration === "number" ? duration : current_track?.duration_ms || 0;
 
   return (
     <div
       className="w-full bg-neutral-900 flex items-center px-6 py-4 justify-between relative"
-      style={{ minHeight: 100 }}
-    >
+      style={{ minHeight: 100 }}>
       {/* Left: Album Art & Track Info */}
       <div className="flex items-center w-[10rem]">
         <Link
           href={`https://open.spotify.com/track/${current_track.uri?.split(":").pop()}`}
           className="flex-shrink-0"
-          target="_blank"
-        >
-          <Image
-            src={albumImg ? albumImg : "/window.svg"}
-            alt={albumName}
-            width={60}
-            height={60}
-          />
+          target="_blank">
+          <Image src={albumImg ? albumImg : "/window.svg"} alt={albumName} width={60} height={60} />
         </Link>
 
         <div className="ml-3 md:flex flex-col hidden">
-          <span className="text-white text-sm font-semibold truncate max-w-[180px]">
-            {songName}
-          </span>
-          <span className="text-neutral-300 text-xs truncate max-w-[180px]">
-            {artists}
-          </span>
-          <span className="text-neutral-500 text-xs truncate max-w-[180px]">
-            {albumName}
-          </span>
+          <span className="text-white text-sm font-semibold truncate max-w-[180px]">{songName}</span>
+          <span className="text-neutral-300 text-xs truncate max-w-[180px]">{artists}</span>
+          <span className="text-neutral-500 text-xs truncate max-w-[180px]">{albumName}</span>
         </div>
       </div>
       {/* Center: Controls & Progress */}
@@ -179,8 +165,7 @@ export default function SpotifyPlayer({ accessToken }) {
             title="Previous"
             onClick={() => {
               player.previousTrack();
-            }}
-          >
+            }}>
             ⏮️
           </button>
           <button
@@ -189,8 +174,7 @@ export default function SpotifyPlayer({ accessToken }) {
             onClick={async () => {
               await player.togglePlay();
               console.log("player");
-            }}
-          >
+            }}>
             {is_paused ? "▶️" : "⏸️"}
           </button>
           <button
@@ -198,24 +182,18 @@ export default function SpotifyPlayer({ accessToken }) {
             title="Next"
             onClick={() => {
               player.nextTrack();
-            }}
-          >
+            }}>
             ⏭️
           </button>
         </div>
         <div className="w-[70%] flex items-center gap-2">
-          <span className="text-xs text-neutral-400 min-w-[30px]">
-            {msToMinSec(posMs)}
-          </span>
+          <span className="text-xs text-neutral-400 min-w-[30px]">{msToMinSec(posMs)}</span>
           <div className="h-1 rounded bg-neutral-700 flex-1 relative overflow-hidden cursor-pointer">
             <div
               className="absolute h-1 rounded bg-neutral-400"
-              style={{ width: `${(posMs / totalMs) * 100 || 0}%` }}
-            ></div>
+              style={{ width: `${(posMs / totalMs) * 100 || 0}%` }}></div>
           </div>
-          <span className="text-xs text-neutral-400 min-w-[30px]">
-            {msToMinSec(totalMs)}
-          </span>
+          <span className="text-xs text-neutral-400 min-w-[30px]">{msToMinSec(totalMs)}</span>
         </div>
       </div>
       {/* Right: Device Info / Return Control */}
@@ -224,10 +202,7 @@ export default function SpotifyPlayer({ accessToken }) {
           {isCurrentDevice ? "Listening on Peckodoro" : "Playback Elsewhere"}
         </span>
         {!isCurrentDevice ? (
-          <button
-            className="bg-green-500 text-white px-3 py-1 rounded text-xs"
-            onClick={swithBackToPlayer}
-          >
+          <button className="bg-green-500 text-white px-3 py-1 rounded text-xs" onClick={swithBackToPlayer}>
             Return Playback
           </button>
         ) : null}
