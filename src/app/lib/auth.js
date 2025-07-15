@@ -60,7 +60,11 @@ export const auth = betterAuth({
       ],
     },
   },
-  trustedOrigins: ["http://localhost:3000", "https://peckodoro.vercel.app"],
+  trustedOrigins: [
+    "http://localhost:3000",
+    "https://peckodoro.vercel.app",
+    "https://peckodoro-git-prev-chickenjs-projects.vercel.app/",
+  ],
   plugins: [openAPI()],
   hooks: {
     before: createAuthMiddleware(async (ctx) => {
