@@ -4,6 +4,7 @@ import { encrypt, decrypt } from "@/app/lib/encrypt";
 const prisma = new PrismaClient();
 
 export async function POST(request) {
+  console.log("Refreshing Spotify access token");
   const { userId } = await request.json();
   const result = await prisma.account.findFirst({
     where: { userId: userId, providerId: "spotify" },
