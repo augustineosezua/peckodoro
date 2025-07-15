@@ -13,26 +13,17 @@ export async function POST(request) {
   let refreshToken = result?.refreshToken;
   const params = new URLSearchParams();
   params.append("grant_type", "refresh_token");
-  params.append(
-    "refresh_token",
-    decrypt(refreshToken, process.env.ENCRYPTION_KEY)
-  );
-  if (accessTokenExpiresAt < now) {
-    const res = await fetch("https://accounts.spotify.com/api/token", {
-      method: "POST",
-      headers: {
-        "content-type": "application/x-www-form-urlencoded",
-        Authorization:
-          "Basic " +
-          new Buffer.from(
-            process.env.SPOTIFY_CLIENT_ID +
-              ":" +
-              process.env.SPOTIFY_CLIENT_SECRET
-          ).toString("base64"),
-      },
-      body: params.toString(),
-    });
-  }
+  params.append("refresh_token", decrypt(refreshToken, process.env.ENCRYPTION_KEY));
+  const res = await fetch("https://accounts.spotify.com/api/token", {
+    method: "POST",
+    headers: {
+      "content-type": "application/x-www-form-urlencoded",
+      Authorization:
+        "Basic " +
+        new Buffer.from(process.env.SPOTIFY_CLIENT_ID + ":" + process.env.SPOTIFY_CLIENT_SECRET).toString("base64"),
+    },
+    body: params.toString(),
+  });
   const json = await res.json();
   if (!json.error) {
     accessToken = encrypt(json.access_token, process.env.ENCRYPTION_KEY);
