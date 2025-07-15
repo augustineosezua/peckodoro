@@ -139,7 +139,7 @@ export default function SpotifyPlayer(props) {
 
   const swithBackToPlayer = async () => {
     if (!player) return;
-    activateDevices(accessTokenRef.current, [deviceId.current]);
+    activateDevices([deviceId.current]);
   };
 
   useEffect(() => {
