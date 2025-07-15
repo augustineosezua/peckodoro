@@ -55,9 +55,7 @@ export const auth = betterAuth({
     spotify: {
       clientId: process.env.SPOTIFY_CLIENT_ID,
       clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-      scope: [
-        "user-read-email user-read-private user-read-playback-state user-modify-playback-state streaming",
-      ],
+      scope: ["user-read-email user-read-private user-read-playback-state user-modify-playback-state streaming"],
     },
   },
   trustedOrigins: [
@@ -100,19 +98,14 @@ export const auth = betterAuth({
     account: {
       create: {
         before(account, context) {
+          console.log(account);
           const withEncryptedTokens = { ...account };
           if (account.accessToken) {
-            const encryptedAccessToken = encrypt(
-              account.accessToken,
-              process.env.ENCRYPTION_KEY
-            );
+            const encryptedAccessToken = encrypt(account.accessToken, process.env.ENCRYPTION_KEY);
             withEncryptedTokens.accessToken = encryptedAccessToken;
           }
           if (account.refreshToken) {
-            const encryptedRefreshToken = encrypt(
-              account.refreshToken,
-              process.env.ENCRYPTION_KEY
-            );
+            const encryptedRefreshToken = encrypt(account.refreshToken, process.env.ENCRYPTION_KEY);
             withEncryptedTokens.refreshToken = encryptedRefreshToken;
           }
           return {
