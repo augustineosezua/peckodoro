@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -11,6 +11,18 @@ const track = {
   },
   artists: [{ name: "" }],
 };
+const playButton = (
+  <Image src="/player-play.svg" alt="Play" width={30} height={30} />
+);
+const pauseButton = (
+  <Image src="/player-pause.svg" alt="Pause" width={30} height={30} />
+);
+const nextButton = (
+  <Image src="/player-skip-forward.svg" alt="Next" width={30} height={30} />
+);
+const prevButton = (
+  <Image src="/player-skip-back.svg" alt="Previous" width={30} height={30} />
+);
 
 function msToMinSec(ms) {
   const min = Math.floor(ms / 60000);
@@ -20,15 +32,19 @@ function msToMinSec(ms) {
 
 export default function SpotifyPlayer(props) {
   const session = props.session;
+  const play = props.play || false;
   const [player, setPlayer] = useState(null);
-  const [device, setDevice] = useState(null);
+  const currentTrack = useRef(null);
   const [is_paused, setPaused] = useState(false);
   const [is_active, setActive] = useState(false);
   const [current_track, setTrack] = useState(track);
+  const [position, setPosition] = useState(0);
+  const positionRef = useRef(null);
+  const [duration, setDuration] = useState(0);
   const deviceId = useRef(null);
   const [isCurrentDevice, setIsCurrentDevice] = useState(false);
   const accessTokenRef = useRef(null);
-
+  const [volume, setNewVolume] = useState(0.15);
 
   useEffect(() => {
     const script = document.createElement("script");
@@ -40,7 +56,7 @@ export default function SpotifyPlayer(props) {
       const player = new window.Spotify.Player({
         name: "Peckodoro",
         getOAuthToken: async (cb) => {
-          console.log(session)
+          console.log(session);
           const response = await fetch("/api/spotify/refresh", {
             method: "POST",
             headers: {
@@ -53,12 +69,15 @@ export default function SpotifyPlayer(props) {
             accessTokenRef.current = json.accessToken;
             console.log("Access token refreshed successfully.");
           } else {
-            toast.error("Failed to refresh Spotify access token, please refresh the page.");
+            toast.error(
+              "Failed to refresh Spotify access token, please refresh the page."
+            );
           }
 
           cb(accessTokenRef.current);
         },
         volume: 0.15,
+        enableMediaSession: true,
       });
 
       setPlayer(player);
@@ -74,13 +93,11 @@ export default function SpotifyPlayer(props) {
       });
       player.addListener("player_state_changed", (state) => {
         if (!state) {
-          console.log("No player state available");
           setIsCurrentDevice(false);
           return;
         }
 
         setIsCurrentDevice(true);
-        console.log(state);
         setTrack(state.track_window.current_track);
         setPaused(state.paused);
 
@@ -102,7 +119,9 @@ export default function SpotifyPlayer(props) {
           accessTokenRef.current = json.accessToken;
           console.log("Access token refreshed successfully.");
         } else {
-          toast.error("Failed to refresh Spotify access token, please refresh the page.");
+          toast.error(
+            "Failed to refresh Spotify access token, please refresh the page."
+          );
         }
       });
 
@@ -143,85 +162,152 @@ export default function SpotifyPlayer(props) {
   };
 
   useEffect(() => {
-    console.log("Current Track:", current_track);
+    setDuration(current_track?.duration_ms || 0);
+    if (is_paused) {
+      positionRef.current = null;
+      clearInterval(positionRef.current);
+    } else if (!is_paused) {
+      positionRef.current = setInterval(() => {
+        if (!player || !current_track) return;
+        player.getCurrentState().then((state) => {
+          if (state) {
+            setPosition(state.position);
+          }
+        });
+      }, 1000);
+    }
   }, [current_track]);
+
+  const handleVolumeChange = async (e) => {
+    const newVolume = parseFloat(e.target.value);
+    setNewVolume(newVolume);
+    await player.setVolume(newVolume);
+  };
+
+  useEffect(() => {
+    if (!play && player) {
+      document.body.removeChild(script);
+      if (player) {
+        player.disconnect();
+      }
+    }
+  }, [play]);
 
   const albumImg = current_track?.album?.images?.[0]?.url || "";
   const songName = current_track?.name || "Song Name";
-  const artists = current_track?.artists?.map((a) => a.name).join(", ") || "Artist";
+  const artists =
+    current_track?.artists?.map((a) => a.name).join(", ") || "Artist";
   const albumName = current_track?.album?.name || "Album";
-  const posMs = typeof position === "number" ? position : 0;
-  const totalMs = typeof duration === "number" ? duration : current_track?.duration_ms || 0;
 
-  return (
-    <div
-      className="w-full bg-neutral-900 flex items-center px-6 py-4 justify-between relative"
-      style={{ minHeight: 100 }}>
-      {/* Left: Album Art & Track Info */}
-      <div className="flex items-center w-[10rem]">
-        <Link
-          href={`https://open.spotify.com/track/${current_track.uri?.split(":").pop()}`}
-          className="flex-shrink-0"
-          target="_blank">
-          <Image src={albumImg ? albumImg : "/window.svg"} alt={albumName} width={60} height={60} />
-        </Link>
+  if (play) {
+    return (
+      <div
+        className="w-full bg-neutral-900 flex items-center px-6 py-4 justify-between relative font-[family-name:var(--font-geist-sans)] text-xl"
+        style={{ minHeight: 100 }}
+      >
+        {/* Left: Album Art & Track Info */}
+        <div className="flex items-center w-[10rem]">
+          <Link
+            href={`https://open.spotify.com/track/${current_track.uri?.split(":").pop()}`}
+            className="flex-shrink-0"
+            target="_blank"
+          >
+            <Image
+              src={albumImg ? albumImg : "/window.svg"}
+              alt={albumName}
+              width={60}
+              height={60}
+            />
+          </Link>
 
-        <div className="ml-3 md:flex flex-col hidden">
-          <span className="text-white text-sm font-semibold truncate max-w-[180px]">{songName}</span>
-          <span className="text-neutral-300 text-xs truncate max-w-[180px]">{artists}</span>
-          <span className="text-neutral-500 text-xs truncate max-w-[180px]">{albumName}</span>
-        </div>
-      </div>
-      {/* Center: Controls & Progress */}
-      <div className="flex flex-col items-center flex-1 w-full max-w-[960px] right-[50%]">
-        <div className="flex items-center gap-6 mb-1 select-none">
-          <button
-            className="text-neutral-500 hover:text-white text-xl font-bold"
-            title="Previous"
-            onClick={() => {
-              player.previousTrack();
-            }}>
-            ⏮️
-          </button>
-          <button
-            className="text-neutral-500 hover:text-white text-2xl font-bold cursor-pointer"
-            title="Play/Pause"
-            onClick={async () => {
-              await player.togglePlay();
-              console.log("player");
-            }}>
-            {is_paused ? "▶️" : "⏸️"}
-          </button>
-          <button
-            className="text-neutral-500 hover:text-white text-xl font-bold cursor-pointer"
-            title="Next"
-            onClick={() => {
-              player.nextTrack();
-            }}>
-            ⏭️
-          </button>
-        </div>
-        <div className="w-[70%] flex items-center gap-2">
-          <span className="text-xs text-neutral-400 min-w-[30px]">{msToMinSec(posMs)}</span>
-          <div className="h-1 rounded bg-neutral-700 flex-1 relative overflow-hidden cursor-pointer">
-            <div
-              className="absolute h-1 rounded bg-neutral-400"
-              style={{ width: `${(posMs / totalMs) * 100 || 0}%` }}></div>
+          <div className="ml-3 md:flex flex-col hidden">
+            <span className="text-white text-base font-semibold truncate max-w-[180px]">
+              {songName}
+            </span>
+            <span className="text-neutral-300 text-xs truncate max-w-[180px]">
+              {artists}
+            </span>
+            <span className="text-neutral-500 text-xs truncate max-w-[180px]">
+              {albumName}
+            </span>
           </div>
-          <span className="text-xs text-neutral-400 min-w-[30px]">{msToMinSec(totalMs)}</span>
+        </div>
+        {/* Center: Controls & Progress */}
+        <div className="flex flex-col items-center flex-1 w-full h-full justify-between py-1 max-w-[960px] right-[50%]">
+          <div className="flex items-center gap-6 mb-1 select-none">
+            <button
+              className="text-neutral-500 hover:text-white text-xl cursor-pointer"
+              title="Previous"
+              onClick={() => {
+                player.previousTrack();
+              }}
+            >
+              {prevButton}
+            </button>
+            <button
+              className="text-neutral-500 hover:text-white text-2xl font-bold cursor-pointer"
+              title="Play/Pause"
+              onClick={async () => {
+                await player.togglePlay();
+                console.log("player");
+              }}
+            >
+              {is_paused ? playButton : pauseButton}
+            </button>
+            <button
+              className="text-neutral-500 hover:text-white text-xl font-bold cursor-pointer"
+              title="Next"
+              onClick={() => {
+                player.nextTrack();
+              }}
+            >
+              {nextButton}
+            </button>
+          </div>
+          <div className="w-[70%] flex items-center gap-2">
+            <span className="text-xs text-neutral-400 min-w-[30px]">
+              {msToMinSec(position)}
+            </span>
+            <div className="h-1 rounded bg-neutral-700 flex-1 relative overflow-hidden cursor-pointer">
+              <div
+                className="absolute h-1 rounded bg-green-500"
+                style={{ width: `${(position / duration) * 100 || 0}%` }}
+              ></div>
+            </div>
+            <span className="text-xs text-neutral-400 min-w-[30px]">
+              {msToMinSec(duration)}
+            </span>
+          </div>
+        </div>
+        {/* Right: Device Info / Return Control */}
+        <div className="md:flex flex-col items-center justify-between hidden gap-3">
+          <div className="flex items-center w-36">
+            <input
+              type="range"
+              min={0}
+              max={1}
+              step={0.01}
+              value={volume}
+              onChange={handleVolumeChange}
+              className="w-full accent-[#1DB954] h-2 rounded-lg outline-none transition-all duration-200 shadow-inner hover:accent-[#1ED760]"
+              aria-label="Volume"
+            />
+            <span className="ml-2 text-sm text-white">
+              {Math.round(volume * 100)}
+            </span>
+          </div>
+          {!isCurrentDevice ? (
+            <button
+              className="bg-green-500 text-white px-3 py-1 rounded text-xs cursor-pointer"
+              onClick={swithBackToPlayer}
+            >
+              Return Playback
+            </button>
+          ) : null}
         </div>
       </div>
-      {/* Right: Device Info / Return Control */}
-      <div className="md:flex flex-col items-end hidden">
-        <span className="text-xs text-neutral-400 mb-2">
-          {isCurrentDevice ? "Listening on Peckodoro" : "Playback Elsewhere"}
-        </span>
-        {!isCurrentDevice ? (
-          <button className="bg-green-500 text-white px-3 py-1 rounded text-xs" onClick={swithBackToPlayer}>
-            Return Playback
-          </button>
-        ) : null}
-      </div>
-    </div>
-  );
+    );
+  } else {
+    return <div></div>;
+  }
 }

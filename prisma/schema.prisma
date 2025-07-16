@@ -19,6 +19,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   settings      Settings?
+  role          String    @default("user")
 
   @@map("user")
 }

@@ -39,6 +39,7 @@ export default function Home() {
     autoStart: false,
   });
   const [spotifyExists, setSpotifyExists] = useState(null);
+  const [play, setPlay] = useState(false);
 
   useEffect(() => {
     toast.loading("Loading...", {
@@ -81,11 +82,9 @@ export default function Home() {
           focusBeforeLong: 3,
           autoStart: false,
         });
+        setPlay(false);
+        setSpotifyExists(false);
         ogSettings.current = null;
-        toast.success("Timer Loaded", {
-          id: "loading",
-          duration: 1000,
-        });
         return;
       }
     };
@@ -127,20 +126,24 @@ export default function Home() {
   }, [settings]);
 
   const spotifyHandler = async () => {
-    const res = await fetch("/api/spotify", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ userId: session.user.id }),
-    });
+    console.log(session.user)
+    if (session.user) {
+      const res = await fetch("/api/spotify", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId: session.user.id }),
+      });
 
-    if (!res.ok) {
-      return;
+      if (!res.ok) {
+        return;
+      }
+
+      const json = await res.json();
+      setSpotifyExists(true);
+      setPlay(true)
     }
-
-    const json = await res.json();
-    setSpotifyExists(true);
   };
 
   return (
@@ -156,8 +159,8 @@ export default function Home() {
         <Timer settings={settings} />
       </div>
       {spotifyExists ? (
-        <div className="w-full flex justify-center">
-          <SpotifyPlayer session={session} />
+        <div className="w-full flex justify-center absolute bottom-0">
+          <SpotifyPlayer session={session} play={play} />
         </div>
       ) : null}
 
