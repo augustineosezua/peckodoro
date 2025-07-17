@@ -75,6 +75,7 @@ export default function Home() {
         }
       } else {
         toast.dismiss("signing-out");
+        toast.dismiss("loading");
         setSettings({
           focusTime: 25,
           shortBreak: 5,
@@ -126,7 +127,7 @@ export default function Home() {
   }, [settings]);
 
   const spotifyHandler = async () => {
-    console.log(session.user)
+    console.log(session.user);
     if (session.user) {
       const res = await fetch("/api/spotify", {
         method: "POST",
@@ -141,8 +142,10 @@ export default function Home() {
       }
 
       const json = await res.json();
-      setSpotifyExists(true);
-      setPlay(true)
+      if (json.accessToken) {
+        setSpotifyExists(true);
+        setPlay(true);
+      }
     }
   };
 
