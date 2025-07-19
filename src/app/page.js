@@ -40,6 +40,8 @@ export default function Home() {
   });
   const [spotifyExists, setSpotifyExists] = useState(null);
   const [play, setPlay] = useState(false);
+  const [player, setPlayer] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     toast.loading("Loading...", {
@@ -50,7 +52,6 @@ export default function Home() {
         toast.loading("Loading Settings...", {
           id: "loading",
         });
-        console.log("Session:", session);
         const response = await fetch(`/api/settings/${session.user.id}`);
         if (response.ok) {
           const savedSettings = await response.json();
@@ -85,6 +86,9 @@ export default function Home() {
         });
         setPlay(false);
         setSpotifyExists(false);
+        if (player) {
+          player.disconnect();
+        }
         ogSettings.current = null;
         return;
       }
@@ -126,9 +130,24 @@ export default function Home() {
     updateSettings();
   }, [settings]);
 
+  const checkAdmin = async () => {
+    if (!session) return;
+    console.log("Checking admin status for:", session.user.email);
+    const res = await fetch("/api/check-admin", {
+      method: "post",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email: session.user.email }),
+    });
+    const json = await res.json();
+    return json.isAdmin;
+  };
+
   const spotifyHandler = async () => {
-    console.log(session.user);
-    if (session.user) {
+    const admin = await checkAdmin();
+    setIsAdmin(admin);
+    if (session.user && admin) {
       const res = await fetch("/api/spotify", {
         method: "POST",
         headers: {
@@ -142,6 +161,7 @@ export default function Home() {
       }
 
       const json = await res.json();
+      console.log("Spotify response:", json);
       if (json.accessToken) {
         setSpotifyExists(true);
         setPlay(true);
@@ -163,7 +183,12 @@ export default function Home() {
       </div>
       {spotifyExists ? (
         <div className="w-full flex justify-center absolute bottom-0">
-          <SpotifyPlayer session={session} play={play} />
+          <SpotifyPlayer
+            session={session}
+            play={play}
+            player={player}
+            setPlayer={setPlayer}
+          />
         </div>
       ) : null}
 
@@ -173,6 +198,7 @@ export default function Home() {
           settings={settings}
           setSettings={setSettings}
           session={session}
+          isAdmin={isAdmin}
         />
       ) : null}
     </div>

@@ -33,8 +33,8 @@ function msToMinSec(ms) {
 export default function SpotifyPlayer(props) {
   const session = props.session;
   const play = props.play || false;
-  const [player, setPlayer] = useState(null);
-  const currentTrack = useRef(null);
+  const player = props.player || null;
+  const setPlayer = props.setPlayer || (() => {});
   const [is_paused, setPaused] = useState(false);
   const [is_active, setActive] = useState(false);
   const [current_track, setTrack] = useState(track);
@@ -56,7 +56,6 @@ export default function SpotifyPlayer(props) {
       const player = new window.Spotify.Player({
         name: "Peckodoro",
         getOAuthToken: async (cb) => {
-          console.log(session);
           const response = await fetch("/api/spotify/refresh", {
             method: "POST",
             headers: {
@@ -183,15 +182,6 @@ export default function SpotifyPlayer(props) {
     setNewVolume(newVolume);
     await player.setVolume(newVolume);
   };
-
-  useEffect(() => {
-    if (!play && player) {
-      document.body.removeChild(script);
-      if (player) {
-        player.disconnect();
-      }
-    }
-  }, [play]);
 
   const albumImg = current_track?.album?.images?.[0]?.url || "";
   const songName = current_track?.name || "Song Name";
