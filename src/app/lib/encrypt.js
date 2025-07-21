@@ -11,7 +11,7 @@ export const encrypt = (text, env_key) => {
   return `${encrypted}:${iv.toString("base64")}`;
 };
 
-export const decrypt = (encryptedString) => {
+export const decrypt = (encryptedString, env_key) => {
   const key = Buffer.from(env_key, "hex");
   const [encryptedData, ivBase64] = encryptedString.split(":");
   const iv = Buffer.from(ivBase64, "base64");

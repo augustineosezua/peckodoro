@@ -11,6 +11,7 @@ import {
   authClient, // available but not used here
 } from "@/app/lib/auth-client";
 import { Toaster, toast } from "sonner";
+import SpotifyPlayer from "./components/SpotifyPlayer/SpotifyPlayer";
 
 function shallowEqual(obj1, obj2) {
   const keysA = Object.keys(obj1);
@@ -37,12 +38,15 @@ export default function Home() {
     focusBeforeLong: 3,
     autoStart: false,
   });
+  const [spotifyExists, setSpotifyExists] = useState(null);
+  const [play, setPlay] = useState(false);
+  const [player, setPlayer] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     toast.loading("Loading...", {
       id: "loading",
     });
-    console.log("session change");
     const checkSession = async () => {
       if (session) {
         toast.loading("Loading Settings...", {
@@ -62,6 +66,7 @@ export default function Home() {
           setSettings(savedSettings);
           ogSettings.current = savedSettings;
           toast.dismiss("loading");
+          await spotifyHandler();
         } else {
           toast.error("Failed to load settings.", {
             id: "loading",
@@ -71,6 +76,7 @@ export default function Home() {
         }
       } else {
         toast.dismiss("signing-out");
+        toast.dismiss("loading");
         setSettings({
           focusTime: 25,
           shortBreak: 5,
@@ -78,11 +84,12 @@ export default function Home() {
           focusBeforeLong: 3,
           autoStart: false,
         });
+        setPlay(false);
+        setSpotifyExists(false);
+        if (player) {
+          player.disconnect();
+        }
         ogSettings.current = null;
-        toast.success("Timer Loaded", {
-          id: "loading",
-          duration: 1000,
-        });
         return;
       }
     };
@@ -123,6 +130,45 @@ export default function Home() {
     updateSettings();
   }, [settings]);
 
+  const checkAdmin = async () => {
+    if (!session) return;
+    console.log("Checking admin status for:", session.user.email);
+    const res = await fetch("/api/check-admin", {
+      method: "post",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email: session.user.email }),
+    });
+    const json = await res.json();
+    return json.isAdmin;
+  };
+
+  const spotifyHandler = async () => {
+    const admin = await checkAdmin();
+    setIsAdmin(admin);
+    if (session.user && admin) {
+      const res = await fetch("/api/spotify", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId: session.user.id }),
+      });
+
+      if (!res.ok) {
+        return;
+      }
+
+      const json = await res.json();
+      console.log("Spotify response:", json);
+      if (json.accessToken) {
+        setSpotifyExists(true);
+        setPlay(true);
+      }
+    }
+  };
+
   return (
     <div className="main">
       <div className="flex w-screen font-[family-name:var(--font-geist-sans)]">
@@ -135,12 +181,24 @@ export default function Home() {
       <div className="w-full">
         <Timer settings={settings} />
       </div>
+      {spotifyExists ? (
+        <div className="w-full flex flex-col justify-center absolute bottom-0 items-center font-[family-name:var(--font-geist-sans)]">
+          <SpotifyPlayer
+            session={session}
+            play={play}
+            player={player}
+            setPlayer={setPlayer}
+          />
+        </div>
+      ) : null}
+
       {showSettings ? (
         <Settings
           setShowSettings={setShowSettings}
           settings={settings}
           setSettings={setSettings}
           session={session}
+          isAdmin={isAdmin}
         />
       ) : null}
     </div>
