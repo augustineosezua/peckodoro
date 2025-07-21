@@ -53,6 +53,7 @@ export default function SpotifyPlayer(props) {
   });
   const [data, setData] = useState(null);
   const [queue, setQueue] = useState(null);
+  const [showControls, setShowControls] = useState(false);
 
   useEffect(() => {
     const script = document.createElement("script");
@@ -300,171 +301,173 @@ export default function SpotifyPlayer(props) {
   if (play) {
     return (
       <>
-        <div className="w-screen h-[80vh] lg:h-[55dvh] bg-neutral-900 text-white flex gap-6 p-4">
-          <div className="bg-[#121212] w-1/2 overflow-y-auto py-4 px-2 rounded-2xl scrollbar-thin scrollbar-thumb-neutral-700">
-            <span
-              className="text-white text-lg font-semibold block mb-3"
-              style={{ cursor: "pointer" }}
-            >
-              Your Library
-            </span>
-            {playlists.items.map((playlist) => (
-              <div
-                key={playlist.id}
-                onClick={() => setPlaylist(playlist.id)}
-                className="flex items-center gap-3 px-2 py-2 rounded-md hover:bg-[#232323] cursor-pointer transition"
+        {showControls ? (
+          <div className="w-screen h-[80vh] lg:h-[55dvh] bg-neutral-900 text-white flex gap-6 p-4">
+            <div className="bg-[#121212] w-1/2 overflow-y-auto py-4 px-2 rounded-2xl scrollbar-thin scrollbar-thumb-neutral-700">
+              <span
+                className="text-white text-lg font-semibold block mb-3"
+                style={{ cursor: "pointer" }}
               >
-                <img
-                  src={
-                    playlist.images && playlist.images.length > 0
-                      ? playlist.images[0].url
-                      : "/window.svg"
-                  }
-                  alt={playlist.name}
-                  className="w-10 h-10 rounded-md object-cover"
-                />
-                <div className="flex flex-col min-w-0">
-                  <span className="text-white text-sm font-semibold truncate">
-                    {playlist.name}
-                  </span>
-                  <span className="text-green-500 text-xs flex items-center gap-1">
-                    Playlist
-                    <span className="mx-1 text-neutral-400">•</span>
-                    <span className="text-neutral-400">
-                      {playlist.owner.display_name}
-                    </span>
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="w-full overflow-y-auto h-full bg-[#121212] rounded-2xl grow">
-            {showPlaylist ? (
-              <div className="bg-[#121212] w-full px-2 py-2 h-full">
-                <div className="flex justify-between">
-                  <div
-                    onClick={() => {
-                      playPlaylist();
-                    }}
-                  >
-                    Shuffle Play
-                  </div>
-                  <div
-                    className="cursor-pointer "
-                    onClick={() => {
-                      setShowPlaylist(false);
-                    }}
-                  >
-                    {" "}
-                    x
-                  </div>
-                </div>
-
-                <span className="text-white text-lg font-semibold mb-4 block">
-                  {currentPlaylist.name}
-                </span>
-                {currentPlaylist.tracks.items.map(({ track }, i) => (
-                  <div
-                    key={track.id || Date.now() + i}
-                    className="flex items-center gap-3 px-2 py-2 rounded-md hover:bg-[#232323] cursor-pointer transition group"
-                    onClick={() => {
-                      playPlaylist(i);
-                    }}
-                  >
-                    {/* Album Art */}
-                    <img
-                      src={
-                        track.album.images && track.album.images.length > 0
-                          ? track.album.images[0].url
-                          : "/window.svg"
-                      }
-                      alt={track.name}
-                      className="w-10 h-10 rounded-md object-cover"
-                    />
-                    <div className="flex flex-col min-w-0">
-                      {/* Track name */}
-                      <span className="text-white text-sm font-semibold truncate">
-                        {i + 1}. {track.name}
-                      </span>
-                      {/* Artists and Album */}
-                      <span className="text-neutral-400 text-xs truncate">
-                        {track.artists.map((a) => a.name).join(", ")}
-                        <span className="mx-1 text-neutral-600">•</span>
-                        {track.album.name}
-                      </span>
-                    </div>
-                    {/* Explicit label */}
-                    {track.explicit && (
-                      <span className="text-xs text-neutral-400 bg-neutral-700 px-1 rounded ml-2">
-                        E
-                      </span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-neutral-300 h-full flex flex-col items-center pt-10 overflow-y-auto rounded-lg p-4 scrollbar-thin scrollbar-thumb-neutral-700 w-full grow">
-                <form
-                  onSubmit={(e) => handleSearch(e)}
-                  className="w-full flex justify-center"
+                Your Library
+              </span>
+              {playlists.items.map((playlist) => (
+                <div
+                  key={playlist.id}
+                  onClick={() => setPlaylist(playlist.id)}
+                  className="flex items-center gap-3 px-2 py-2 rounded-md hover:bg-[#232323] cursor-pointer transition"
                 >
-                  <div className="mb-6 w-full">
-                    <div className="flex items-center gap-2 bg-[#242424] focus-within:bg-[#2a2a2a] transition-colors rounded-full pl-4 pr-3 h-12 ring-1 ring-transparent focus-within:ring-[#3a3a3a] ">
-                      <svg className="w-5 h-5 text-[#a7a7a7]" /* ... */ />
-                      <input
-                        className="bg-transparent flex-1 outline-none text-sm placeholder-[#6a6a6a] focus:outline-green-500"
-                        placeholder="What do you want to play?"
-                      />
+                  <img
+                    src={
+                      playlist.images && playlist.images.length > 0
+                        ? playlist.images[0].url
+                        : "/window.svg"
+                    }
+                    alt={playlist.name}
+                    className="w-10 h-10 rounded-md object-cover"
+                  />
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-white text-sm font-semibold truncate">
+                      {playlist.name}
+                    </span>
+                    <span className="text-green-500 text-xs flex items-center gap-1">
+                      Playlist
+                      <span className="mx-1 text-neutral-400">•</span>
+                      <span className="text-neutral-400">
+                        {playlist.owner.display_name}
+                      </span>
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="w-full overflow-y-auto h-full bg-[#121212] rounded-2xl grow">
+              {showPlaylist ? (
+                <div className="bg-[#121212] w-full px-2 py-2 h-full">
+                  <div className="flex justify-between">
+                    <div
+                      onClick={() => {
+                        playPlaylist();
+                      }}
+                    >
+                      Shuffle Play
+                    </div>
+                    <div
+                      className="cursor-pointer "
+                      onClick={() => {
+                        setShowPlaylist(false);
+                      }}
+                    >
+                      {" "}
+                      x
                     </div>
                   </div>
-                </form>
-                <div className="w-full h-full">
-                  <SpotifySearch
-                    data={data}
-                    accessToken={accessToken}
-                    setQueue={setQueue}
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-          <div className="w-1/2 h-full bg-[#121212] rounded-2xl p-4 overflow-y-auto scrollbar-thin scrollbar-thumb-neutral-700">
-            Your Queue
-            {queue ? (
-              <div className="h-full rounded-2xl ">
-                {queue && queue.length > 0 ? (
-                  queue.map((item, index) => (
+
+                  <span className="text-white text-lg font-semibold mb-4 block">
+                    {currentPlaylist.name}
+                  </span>
+                  {currentPlaylist.tracks.items.map(({ track }, i) => (
                     <div
-                      key={item.id || index}
-                      className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-[#232323] transition"
+                      key={track.id || Date.now() + i}
+                      className="flex items-center gap-3 px-2 py-2 rounded-md hover:bg-[#232323] cursor-pointer transition group"
+                      onClick={() => {
+                        playPlaylist(i);
+                      }}
                     >
+                      {/* Album Art */}
                       <img
-                        src={item.album.images[0]?.url || "/window.svg"}
-                        alt={item.name}
-                        className="w-12 h-12 rounded-md object-cover"
+                        src={
+                          track.album.images && track.album.images.length > 0
+                            ? track.album.images[0].url
+                            : "/window.svg"
+                        }
+                        alt={track.name}
+                        className="w-10 h-10 rounded-md object-cover"
                       />
                       <div className="flex flex-col min-w-0">
+                        {/* Track name */}
                         <span className="text-white text-sm font-semibold truncate">
-                          {item.name}
+                          {i + 1}. {track.name}
                         </span>
+                        {/* Artists and Album */}
                         <span className="text-neutral-400 text-xs truncate">
-                          {item.artists.map((a) => a.name).join(", ")} -{" "}
-                          {item.album.name}
+                          {track.artists.map((a) => a.name).join(", ")}
+                          <span className="mx-1 text-neutral-600">•</span>
+                          {track.album.name}
                         </span>
                       </div>
+                      {/* Explicit label */}
+                      {track.explicit && (
+                        <span className="text-xs text-neutral-400 bg-neutral-700 px-1 rounded ml-2">
+                          E
+                        </span>
+                      )}
                     </div>
-                  ))
-                ) : (
-                  <p className="text-neutral-500 text-center">
-                    No tracks in queue
-                  </p>
-                )}
-              </div>
-            ) : (
-              <p className="text-neutral-500">No tracks in queue</p>
-            )}
+                  ))}
+                </div>
+              ) : (
+                <div className="text-neutral-300 h-full flex flex-col items-center pt-10 overflow-y-auto rounded-lg p-4 scrollbar-thin scrollbar-thumb-neutral-700 w-full grow">
+                  <form
+                    onSubmit={(e) => handleSearch(e)}
+                    className="w-full flex justify-center"
+                  >
+                    <div className="mb-6 w-full">
+                      <div className="flex items-center gap-2 bg-[#242424] focus-within:bg-[#2a2a2a] transition-colors rounded-full pl-4 pr-3 h-12 ring-1 ring-transparent focus-within:ring-[#3a3a3a] ">
+                        <svg className="w-5 h-5 text-[#a7a7a7]" /* ... */ />
+                        <input
+                          className="bg-transparent flex-1 outline-none text-sm placeholder-[#6a6a6a] focus:outline-green-500"
+                          placeholder="What do you want to play?"
+                        />
+                      </div>
+                    </div>
+                  </form>
+                  <div className="w-full h-full">
+                    <SpotifySearch
+                      data={data}
+                      accessToken={accessToken}
+                      setQueue={setQueue}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="w-1/2 h-full bg-[#121212] rounded-2xl p-4 overflow-y-auto scrollbar-thin scrollbar-thumb-neutral-700">
+              Your Queue
+              {queue ? (
+                <div className="h-full rounded-2xl ">
+                  {queue && queue.length > 0 ? (
+                    queue.map((item, index) => (
+                      <div
+                        key={item.id || index}
+                        className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-[#232323] transition"
+                      >
+                        <img
+                          src={item.album.images[0]?.url || "/window.svg"}
+                          alt={item.name}
+                          className="w-12 h-12 rounded-md object-cover"
+                        />
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-white text-sm font-semibold truncate">
+                            {item.name}
+                          </span>
+                          <span className="text-neutral-400 text-xs truncate">
+                            {item.artists.map((a) => a.name).join(", ")} -{" "}
+                            {item.album.name}
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-neutral-500 text-center">
+                      No tracks in queue
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <p className="text-neutral-500">No tracks in queue</p>
+              )}
+            </div>
           </div>
-        </div>
+        ) : null}
         <div
           className="w-full bg-neutral-900 flex items-center px-6 py-4 justify-between relative font-[family-name:var(--font-geist-sans)] text-xl"
           style={{ minHeight: 100 }}
@@ -543,7 +546,26 @@ export default function SpotifyPlayer(props) {
             </div>
           </div>
           {/* Right: Device Info / Return Control */}
-          <div className="md:flex flex-col items-center justify-between hidden gap-3">
+          <div className="md:flex items-center justify-between hidden gap-3">
+            {!isCurrentDevice ? (
+              <button
+                className="bg-green-500 text-white px-3 py-1 rounded text-xs cursor-pointer"
+                onClick={swithBackToPlayer}
+              >
+                Play On Peckodoro
+              </button>
+            ) : (
+              <div className="flex items-center gap-2 flex-col text-white cursor-pointer">
+                <img
+                  src="https://upload.wikimedia.org/wikipedia/commons/2/26/Spotify_logo_with_text.svg"
+                  alt="Spotify Logo"
+                  className="w-24 h-auto"
+                  onClick={() => {
+                    setShowControls(!showControls);
+                  }}
+                />
+              </div>
+            )}
             <div className="flex items-center w-36">
               <input
                 type="range"
@@ -559,14 +581,6 @@ export default function SpotifyPlayer(props) {
                 {Math.round(volume * 100)}
               </span>
             </div>
-            {!isCurrentDevice ? (
-              <button
-                className="bg-green-500 text-white px-3 py-1 rounded text-xs cursor-pointer"
-                onClick={swithBackToPlayer}
-              >
-                Return Playback
-              </button>
-            ) : null}
           </div>
         </div>
       </>
