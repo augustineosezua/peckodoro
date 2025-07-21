@@ -86,6 +86,7 @@ export default function Home() {
         });
         setPlay(false);
         setSpotifyExists(false);
+        setIsAdmin(false);
         if (player) {
           player.disconnect();
         }
