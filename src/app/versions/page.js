@@ -5,6 +5,12 @@ import "./versions.css";
 
 const versionHistory = [
   {
+    version: "v0.2.0",
+    date: "2025-07-20",
+    description:
+      "Added Spotify integration: Admin users can connect their Spotify account, control playback (play, pause, next, previous), view current track, access playlists, and open queue/lyrics and library panels—seamlessly pairing focus music with Pomodoro sessions.",
+  },
+  {
     version: "v0.1.2",
     date: "2025-07-05",
     description:
@@ -25,7 +31,6 @@ const versionHistory = [
 ];
 
 export default function VersionHistoryPage() {
-
   return (
     <main className="max-w-2xl mx-auto p-6 font-[family-name:var(--font-geist-sans)]">
       <Head>
