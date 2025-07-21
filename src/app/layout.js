@@ -34,7 +34,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${chivoMono.variable} ${figtreeSans.variable} antialiased h-screen md:overflow-hidden`}
+        className={`${geistSans.variable} ${geistMono.variable} ${chivoMono.variable} ${figtreeSans.variable} antialiased h-screen`}
       >
         <Toaster richColors position="top-center" />
         {children}

@@ -119,7 +119,7 @@ export default function LoginPage() {
     });
     let scopes = [];
     if (provider === "spotify") {
-      scopes = ["streaming", "user-read-email", "user-read-private"];
+      scopes = ["streaming", "user-read-email", "user-read-private", "playlist-read-private", "playlist-read-collaborative"];
     } else {
       scopes = [
         "https://www.googleapis.com/auth/userinfo.profile,https://www.googleapis.com/auth/userinfo.email,openid",

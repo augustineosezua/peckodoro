@@ -182,7 +182,7 @@ export default function Home() {
         <Timer settings={settings} />
       </div>
       {spotifyExists ? (
-        <div className="w-full flex justify-center absolute bottom-0">
+        <div className="w-full flex flex-col justify-center absolute bottom-0 items-center font-[family-name:var(--font-geist-sans)]">
           <SpotifyPlayer
             session={session}
             play={play}

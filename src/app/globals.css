@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #FAF3E0;
+  --background: #faf3e0;
   --foreground: #171717;
 }
 
@@ -14,7 +14,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #FAF3E0;
+    --background: #faf3e0;
     --foreground: #171717;
   }
 }
@@ -32,6 +32,39 @@ input::-webkit-inner-spin-button {
 }
 
 .glow {
-  box-shadow: 0 0 10px #F4A261, 0 0 15px #F4A26199, 0 0 25px #F4A26166;
+  box-shadow:
+    0 0 10px #f4a261,
+    0 0 15px #f4a26199,
+    0 0 25px #f4a26166;
   transition: box-shadow 0.1s;
+}
+
+/* Improved scrollbar styles */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #6b7280 #1f2937; /* Thumb color and track color */
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 8px; /* Width of the scrollbar */
+  height: 8px; /* Height of the scrollbar */
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: #1f2937; /* Track color */
+  border-radius: 9999px; /* Rounded track */
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #4ade80, #22c55e); /* Gradient thumb */
+  border-radius: 9999px; /* Rounded thumb */
+  border: 2px solid #1f2937; /* Adds spacing between thumb and track */
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    180deg,
+    #22c55e,
+    #16a34a
+  ); /* Darker gradient on hover */
 }
