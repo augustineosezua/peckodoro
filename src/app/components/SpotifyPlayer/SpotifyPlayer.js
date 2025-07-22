@@ -56,6 +56,25 @@ export default function SpotifyPlayer(props) {
   const [showControls, setShowControls] = useState(false);
 
   useEffect(() => {
+    if (!showControls) return;
+
+    const handleBodyClick = (e) => {
+      // If the clicked element (or any of its parents) is part of Spotify-related UI, do nothing.
+      if (e.target.closest("#spotify-player-controls, .spotify-related")) {
+        return;
+      }
+      // Otherwise, hide the controls.
+      setShowControls(false);
+    };
+
+    document.body.addEventListener("click", handleBodyClick);
+
+    return () => {
+      document.body.removeEventListener("click", handleBodyClick);
+    };
+  }, [showControls]);
+
+  useEffect(() => {
     const script = document.createElement("script");
     script.src = "https://sdk.scdn.co/spotify-player.js";
     script.async = true;
@@ -302,8 +321,11 @@ export default function SpotifyPlayer(props) {
     return (
       <>
         {showControls ? (
-          <div className="w-screen h-[80vh] lg:h-[55dvh] bg-neutral-900 text-white flex gap-6 p-4">
-            <div className="bg-[#121212] w-1/2 overflow-y-auto py-4 px-2 rounded-2xl scrollbar-thin scrollbar-thumb-neutral-700">
+          <div
+            className="w-screen h-[80vh] lg:h-[60dvh] bg-black text-white flex gap-6 p-4 pt-10 spofity-related rounded-t-2xl"
+            id="spotify-player-controls"
+          >
+            <div className="bg-[#121212] w-1/2 overflow-y-auto py-4 px-2 rounded-2xl scrollbar-hide">
               <span
                 className="text-white text-lg font-semibold block mb-3"
                 style={{ cursor: "pointer" }}
@@ -340,7 +362,7 @@ export default function SpotifyPlayer(props) {
                 </div>
               ))}
             </div>
-            <div className="w-full overflow-y-auto h-full bg-[#121212] rounded-2xl grow">
+            <div className="w-full overflow-hidden h-full bg-[#121212] rounded-2xl grow spofity-related">
               {showPlaylist ? (
                 <div className="bg-[#121212] w-full px-2 py-2 h-full">
                   <div className="flex justify-between">
@@ -405,7 +427,7 @@ export default function SpotifyPlayer(props) {
                   ))}
                 </div>
               ) : (
-                <div className="text-neutral-300 h-full flex flex-col items-center pt-10 overflow-y-auto rounded-lg p-4 scrollbar-thin scrollbar-thumb-neutral-700 w-full grow">
+                <div className="text-neutral-300 h-full flex flex-col items-center pt-10 overflow-y-auto rounded-lg p-4 scrollbar-hide w-full grow">
                   <form
                     onSubmit={(e) => handleSearch(e)}
                     className="w-full flex justify-center"
@@ -420,7 +442,7 @@ export default function SpotifyPlayer(props) {
                       </div>
                     </div>
                   </form>
-                  <div className="w-full h-full">
+                  <div className="w-full h-full ">
                     <SpotifySearch
                       data={data}
                       accessToken={accessToken}
@@ -430,14 +452,14 @@ export default function SpotifyPlayer(props) {
                 </div>
               )}
             </div>
-            <div className="w-1/2 h-full bg-[#121212] rounded-2xl p-4 overflow-y-auto scrollbar-thin scrollbar-thumb-neutral-700">
+            <div className="w-1/2 h-full bg-[#121212] rounded-2xl p-4 overflow-y-auto scrollbar-hide spofity-related">
               Your Queue
               {queue ? (
                 <div className="h-full rounded-2xl ">
                   {queue && queue.length > 0 ? (
                     queue.map((item, index) => (
                       <div
-                        key={item.id || index}
+                        key={item.id + index || index + Date.now()}
                         className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-[#232323] transition"
                       >
                         <img
@@ -469,11 +491,11 @@ export default function SpotifyPlayer(props) {
           </div>
         ) : null}
         <div
-          className="w-full bg-neutral-900 flex items-center px-6 py-4 justify-between relative font-[family-name:var(--font-geist-sans)] text-xl"
+          className="w-full bg-black flex items-center px-6 py-4 justify-between relative font-[family-name:var(--font-geist-sans)] text-xl spofity-related"
           style={{ minHeight: 100 }}
         >
           {/* Left: Album Art & Track Info */}
-          <div className="flex items-center w-[10rem]">
+          <div className="flex items-center w-[10rem] spofity-related">
             <Link
               href={`https://open.spotify.com/track/${current_track.uri?.split(":").pop()}`}
               className="flex-shrink-0"
@@ -500,7 +522,7 @@ export default function SpotifyPlayer(props) {
             </div>
           </div>
           {/* Center: Controls & Progress */}
-          <div className="flex flex-col items-center flex-1 w-full h-full justify-between py-1 max-w-[960px] right-[50%]">
+          <div className="flex flex-col items-center flex-1 w-full h-full justify-between py-1 max-w-[960px] right-[50%] spofity-related">
             <div className="flex items-center gap-6 mb-1 select-none">
               <button
                 className="text-neutral-500 hover:text-white text-xl cursor-pointer"
@@ -546,7 +568,7 @@ export default function SpotifyPlayer(props) {
             </div>
           </div>
           {/* Right: Device Info / Return Control */}
-          <div className="md:flex items-center justify-between hidden gap-3">
+          <div className="md:flex items-center justify-between hidden gap-3 spofity-related">
             {!isCurrentDevice ? (
               <button
                 className="bg-green-500 text-white px-3 py-1 rounded text-xs cursor-pointer"
@@ -560,9 +582,7 @@ export default function SpotifyPlayer(props) {
                   src="https://upload.wikimedia.org/wikipedia/commons/2/26/Spotify_logo_with_text.svg"
                   alt="Spotify Logo"
                   className="w-24 h-auto"
-                  onClick={() => {
-                    setShowControls(!showControls);
-                  }}
+                  onClick={() => setShowControls(!showControls)}
                 />
               </div>
             )}

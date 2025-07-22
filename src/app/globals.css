@@ -68,3 +68,11 @@ input::-webkit-inner-spin-button {
     #16a34a
   ); /* Darker gradient on hover */
 }
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
