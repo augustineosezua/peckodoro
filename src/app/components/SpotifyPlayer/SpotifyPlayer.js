@@ -362,7 +362,7 @@ export default function SpotifyPlayer(props) {
                 </div>
               ))}
             </div>
-            <div className="w-full overflow-hidden h-full bg-[#121212] rounded-2xl grow spofity-related">
+            <div className="w-full overflow-y-auto scrollbar-hide h-full bg-[#121212] rounded-2xl grow spofity-related">
               {showPlaylist ? (
                 <div className="bg-[#121212] w-full px-2 py-2 h-full">
                   <div className="flex justify-between">
