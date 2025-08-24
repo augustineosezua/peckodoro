@@ -68,3 +68,110 @@ input::-webkit-inner-spin-button {
     #16a34a
   ); /* Darker gradient on hover */
 }
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Custom volume slider styles */
+.volume-slider {
+  background: transparent;
+  cursor: pointer;
+}
+
+.volume-slider::-webkit-slider-track {
+  background: #4a4a4a;
+  height: 4px;
+  border-radius: 2px;
+}
+
+.volume-slider::-webkit-slider-thumb {
+  appearance: none;
+  height: 12px;
+  width: 12px;
+  border-radius: 50%;
+  background: #1db954;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.volume-slider:hover::-webkit-slider-thumb {
+  background: #1ed760;
+  transform: scale(1.1);
+}
+
+.volume-slider::-moz-range-track {
+  background: #4a4a4a;
+  height: 4px;
+  border-radius: 2px;
+  border: none;
+}
+
+.volume-slider::-moz-range-thumb {
+  border: none;
+  height: 12px;
+  width: 12px;
+  border-radius: 50%;
+  background: #1db954;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.volume-slider:hover::-moz-range-thumb {
+  background: #1ed760;
+  transform: scale(1.1);
+}
+
+/* Mobile touch improvements */
+@media (max-width: 1024px) {
+  .spotify-related button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  .spotify-related input {
+    min-height: 44px;
+  }
+  
+  /* Touch feedback */
+  .spotify-related button:active {
+    transform: scale(0.95);
+    transition: transform 0.1s;
+  }
+  
+  /* Mobile content transitions */
+  .mobile-content {
+    transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+}
+
+/* Progress bar animations */
+.progress-bar {
+  transition: width 0.1s linear;
+}
+
+/* Card hover effects for mobile */
+@media (hover: none) {
+  .group:hover .group-hover\:opacity-100 {
+    opacity: 1;
+  }
+  
+  .group:hover .group-hover\:translate-y-0 {
+    transform: translateY(0);
+  }
+  
+  .group:active .group-hover\:opacity-100 {
+    opacity: 1;
+  }
+  
+  .group:active .group-hover\:translate-y-0 {
+    transform: translateY(0);
+  }
+}
