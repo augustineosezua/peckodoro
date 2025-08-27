@@ -1005,8 +1005,8 @@ export default function SpotifyPlayer(props) {
                     className="w-full h-1 rounded-full appearance-none cursor-pointer bg-transparent outline-none transition-all duration-200 group-hover:h-1.5"
                     style={{
                       background: `linear-gradient(to right, #1db954 0%, #1db954 ${volume * 100}%, #4a4a4a ${volume * 100}%, #4a4a4a 100%)`,
-                      WebkitAppearance: 'none',
-                      MozAppearance: 'none'
+                      WebkitAppearance: "none",
+                      MozAppearance: "none",
                     }}
                     aria-label="Volume"
                   />
@@ -1024,12 +1024,12 @@ export default function SpotifyPlayer(props) {
                       opacity: 0;
                       transition: opacity 0.2s ease;
                     }
-                    
+
                     input[type="range"]:hover::-webkit-slider-thumb {
                       opacity: 1;
                       transform: scale(1.2);
                     }
-                    
+
                     input[type="range"]::-moz-range-thumb {
                       width: 12px;
                       height: 12px;
@@ -1041,12 +1041,12 @@ export default function SpotifyPlayer(props) {
                       opacity: 0;
                       transition: opacity 0.2s ease;
                     }
-                    
+
                     input[type="range"]:hover::-moz-range-thumb {
                       opacity: 1;
                       transform: scale(1.2);
                     }
-                    
+
                     input[type="range"]::-moz-range-track {
                       background: transparent;
                       border: none;

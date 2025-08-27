@@ -31,7 +31,6 @@ const versionHistory = [
 ];
 
 export default function VersionHistoryPage() {
-
   return (
     <main className="max-w-2xl mx-auto p-6 font-[family-name:var(--font-geist-sans)]">
       <Head>
