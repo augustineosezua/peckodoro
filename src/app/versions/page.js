@@ -5,6 +5,12 @@ import "./versions.css";
 
 const versionHistory = [
   {
+    version: "v2.5",
+    date: "2025-08-27",
+    description:
+      "Major Spotify integration update! Added full Spotify Web Playback SDK support with custom player controls, playlist browsing, search functionality, and queue management. Enhanced UI with Spotify-inspired dark theme, responsive design for mobile and desktop, touch gestures for mobile navigation, and beautifully styled volume controls. Improved user experience with hover effects, smooth transitions, and professional styling throughout the player interface.",
+  },
+  {
     version: "v0.1.2",
     date: "2025-07-05",
     description:

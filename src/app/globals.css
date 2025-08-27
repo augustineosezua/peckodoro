@@ -79,54 +79,67 @@ input::-webkit-inner-spin-button {
 
 /* Custom volume slider styles */
 .volume-slider {
-  background: transparent;
+  background: transparent !important;
   cursor: pointer;
+  outline: none;
 }
 
 .volume-slider::-webkit-slider-track {
-  background: #4a4a4a;
-  height: 4px;
-  border-radius: 2px;
+  background: transparent;
+  height: 8px;
+  border-radius: 4px;
+  border: none;
 }
 
 .volume-slider::-webkit-slider-thumb {
   appearance: none;
-  height: 12px;
-  width: 12px;
+  height: 16px;
+  width: 16px;
   border-radius: 50%;
-  background: #1db954;
+  background: #ffffff;
   cursor: pointer;
   border: none;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   transition: all 0.2s ease;
+  position: relative;
+  top: -4px;
 }
 
 .volume-slider:hover::-webkit-slider-thumb {
-  background: #1ed760;
-  transform: scale(1.1);
+  background: #ffffff;
+  transform: scale(1.2);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
 }
 
 .volume-slider::-moz-range-track {
-  background: #4a4a4a;
-  height: 4px;
-  border-radius: 2px;
+  background: transparent;
+  height: 8px;
+  border-radius: 4px;
   border: none;
 }
 
 .volume-slider::-moz-range-thumb {
   border: none;
-  height: 12px;
-  width: 12px;
+  height: 16px;
+  width: 16px;
   border-radius: 50%;
-  background: #1db954;
+  background: #ffffff;
   cursor: pointer;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   transition: all 0.2s ease;
 }
 
 .volume-slider:hover::-moz-range-thumb {
-  background: #1ed760;
-  transform: scale(1.1);
+  background: #ffffff;
+  transform: scale(1.2);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* Firefox range thumb fix */
+.volume-slider::-moz-range-progress {
+  background: #1db954;
+  height: 8px;
+  border-radius: 4px;
 }
 
 /* Mobile touch improvements */
@@ -135,17 +148,17 @@ input::-webkit-inner-spin-button {
     min-height: 44px;
     min-width: 44px;
   }
-  
+
   .spotify-related input {
     min-height: 44px;
   }
-  
+
   /* Touch feedback */
   .spotify-related button:active {
     transform: scale(0.95);
     transition: transform 0.1s;
   }
-  
+
   /* Mobile content transitions */
   .mobile-content {
     transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -162,15 +175,15 @@ input::-webkit-inner-spin-button {
   .group:hover .group-hover\:opacity-100 {
     opacity: 1;
   }
-  
+
   .group:hover .group-hover\:translate-y-0 {
     transform: translateY(0);
   }
-  
+
   .group:active .group-hover\:opacity-100 {
     opacity: 1;
   }
-  
+
   .group:active .group-hover\:translate-y-0 {
     transform: translateY(0);
   }
