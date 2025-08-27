@@ -5,10 +5,10 @@ import "./versions.css";
 
 const versionHistory = [
   {
-    version: "v0.2.0",
-    date: "2025-07-20",
+    version: "v2.5",
+    date: "2025-08-27",
     description:
-      "Added Spotify integration: Admin users can connect their Spotify account, control playback (play, pause, next, previous), view current track, access playlists, and open queue/lyrics and library panels—seamlessly pairing focus music with Pomodoro sessions.",
+      "Major Spotify integration update! Added full Spotify Web Playback SDK support with custom player controls, playlist browsing, search functionality, and queue management. Enhanced UI with Spotify-inspired dark theme, responsive design for mobile and desktop, touch gestures for mobile navigation, and beautifully styled volume controls. Improved user experience with hover effects, smooth transitions, and professional styling throughout the player interface.",
   },
   {
     version: "v0.1.2",

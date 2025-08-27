@@ -28,7 +28,7 @@ const Header = ({ showSettings, setShowSettings, session }) => {
           href="/versions/"
           target="blank"
         >
-          0.2.0
+          0.2.5
         </a>
       </div>
       <div className="flex gap-4">
