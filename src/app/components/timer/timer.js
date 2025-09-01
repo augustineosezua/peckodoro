@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import useSound from "use-sound";
 
 const Timer = (props) => {
-  const { settings } = props;
+  const { settings, showChatTimer } = props;
   const focusDone = useRef(0);
   const sequenceSet = useRef(false);
   const [currentMode, setCurrentMode] = useState("Focus Time"); // default to focus
@@ -18,10 +18,10 @@ const Timer = (props) => {
   useEffect(() => {
     const currentMinutes = getCurrentModeMinutes();
     const newDuration = currentMinutes * 60 * 1000;
-   if(Math.max(0, newDuration - laspe.current) == 0){
-    if (playAlarm) playSound();
-    resetTimer()
-   }
+    if (Math.max(0, newDuration - laspe.current) == 0) {
+      if (playAlarm) playSound();
+      resetTimer();
+    }
 
     const didDurationChange =
       Math.abs(timeLeft - newDuration) > 100 ||
@@ -30,8 +30,8 @@ const Timer = (props) => {
     if (didDurationChange && startTimeRef.current && isRunning) {
       pauseTimer();
       setTimeLeft(Math.max(0, newDuration - laspe.current));
-    }else{
-      setTimeLeft(newDuration)
+    } else {
+      setTimeLeft(newDuration);
     }
   }, [
     currentMode === "Focus Time" ? settings.focusTime : null,
@@ -52,6 +52,7 @@ const Timer = (props) => {
   };
 
   useEffect(() => {
+    console.log("Chat timer visibility changed:", showChatTimer);
     if (sequenceSet.current) {
       return;
     }
@@ -142,48 +143,100 @@ const Timer = (props) => {
   const seconds = Math.floor((timeLeft % 60000) / 1000)
     .toString()
     .padStart(2, "0");
-
   return (
     <div className="w-full flex-col flex justify-center items-center  font-[family-name:var(--font-chivo-mono)] pt-5 grow">
-      <div className="flex md:gap-4 px-2 text-center">
-        <div
-          className={`px-4 py-2 cursor-pointer rounded-lg ${
-            currentMode == "Focus Time" ? "bg-[#E9CBA7]" : ""
-          }`}
-          onClick={() => changeMode("Focus Time")}
-        >
-          Focus Time
-        </div>
-        <div
-          className={`px-4 py-2 cursor-pointer rounded-lg ${
-            currentMode == "Short Break" ? "bg-[#E9CBA7]" : ""
-          }`}
-          onClick={() => changeMode("Short Break")}
-        >
-          Short Break
-        </div>
-        <div
-          className={`px-4 py-2 cursor-pointer rounded-lg ${
-            currentMode == "Long Break" ? "bg-[#E9CBA7]" : ""
-          }`}
-          onClick={() => changeMode("Long Break")}
-        >
-          Long Break
-        </div>
-      </div>
-      <div className="md:text-9xl text-8xl font-bold cursor-default px-2 w-full flex justify-center">
-        {minutes}:{seconds}
-      </div>
-      <div className="py-3">
-        <button
-          onClick={!isRunning ? continueTimer : pauseTimer}
-          className={`px-14 py-2 rounded-lg shadow-md text-lg cursor-pointer font-[family-name:var(--font-chivo-mono)] ${
-            isRunning ? "bg-[#C86B5A] text-white " : "bg-[#F4A261] glow"
-          }`}
-        >
-          {isRunning ? "Pause" : !timerRef.current ? "Start" : "Continue"}
-        </button>
-      </div>
+      {showChatTimer ? (
+        <>
+          <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 w-full max-w-4xl">
+            {/* Mode selector */}
+            <div className="flex md:gap-4 px-2 text-center">
+              <div
+                className={`px-4 py-2 cursor-pointer rounded-lg ${
+                  currentMode == "Focus Time" ? "bg-[#E9CBA7]" : ""
+                }`}
+                onClick={() => changeMode("Focus Time")}
+              >
+                Focus Time
+              </div>
+              <div
+                className={`px-4 py-2 cursor-pointer rounded-lg ${
+                  currentMode == "Short Break" ? "bg-[#E9CBA7]" : ""
+                }`}
+                onClick={() => changeMode("Short Break")}
+              >
+                Short Break
+              </div>
+              <div
+                className={`px-4 py-2 cursor-pointer rounded-lg ${
+                  currentMode == "Long Break" ? "bg-[#E9CBA7]" : ""
+                }`}
+                onClick={() => changeMode("Long Break")}
+              >
+                Long Break
+              </div>
+            </div>
+
+            {/* Timer display */}
+            <div className="text-5xl md:text-6xl font-bold cursor-default px-2">
+              {minutes}:{seconds}
+            </div>
+
+            {/* Control button */}
+            <div className="py-2">
+              <button
+                onClick={!isRunning ? continueTimer : pauseTimer}
+                className={`px-8 py-2 rounded-lg shadow-md text-lg cursor-pointer font-[family-name:var(--font-chivo-mono)] ${
+                  isRunning ? "bg-[#C86B5A] text-white " : "bg-[#F4A261] glow"
+                }`}
+              >
+                {isRunning ? "Pause" : !timerRef.current ? "Start" : "Continue"}
+              </button>
+            </div>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="flex md:gap-4 px-2 text-center">
+            <div
+              className={`px-4 py-2 cursor-pointer rounded-lg ${
+                currentMode == "Focus Time" ? "bg-[#E9CBA7]" : ""
+              }`}
+              onClick={() => changeMode("Focus Time")}
+            >
+              Focus Time
+            </div>
+            <div
+              className={`px-4 py-2 cursor-pointer rounded-lg ${
+                currentMode == "Short Break" ? "bg-[#E9CBA7]" : ""
+              }`}
+              onClick={() => changeMode("Short Break")}
+            >
+              Short Break
+            </div>
+            <div
+              className={`px-4 py-2 cursor-pointer rounded-lg ${
+                currentMode == "Long Break" ? "bg-[#E9CBA7]" : ""
+              }`}
+              onClick={() => changeMode("Long Break")}
+            >
+              Long Break
+            </div>
+          </div>
+          <div className="md:text-9xl text-8xl font-bold cursor-default px-2 w-full flex justify-center">
+            {minutes}:{seconds}
+          </div>
+          <div className="py-3">
+            <button
+              onClick={!isRunning ? continueTimer : pauseTimer}
+              className={`px-14 py-2 rounded-lg shadow-md text-lg cursor-pointer font-[family-name:var(--font-chivo-mono)] ${
+                isRunning ? "bg-[#C86B5A] text-white " : "bg-[#F4A261] glow"
+              }`}
+            >
+              {isRunning ? "Pause" : !timerRef.current ? "Start" : "Continue"}
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 };

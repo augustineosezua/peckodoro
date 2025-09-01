@@ -12,6 +12,7 @@ import {
 } from "@/app/lib/auth-client";
 import { Toaster, toast } from "sonner";
 import SpotifyPlayer from "./components/SpotifyPlayer/SpotifyPlayer";
+import ChatBot from "./components/GPT/chatbot";
 
 function shallowEqual(obj1, obj2) {
   const keysA = Object.keys(obj1);
@@ -42,6 +43,11 @@ export default function Home() {
   const [play, setPlay] = useState(false);
   const [player, setPlayer] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [showChatTimer, setShowChatTimer] = useState(true);
+
+  useEffect(() => {
+    console.log(showChatTimer);
+  }, [showChatTimer]);
 
   useEffect(() => {
     toast.loading("Loading...", {
@@ -170,7 +176,7 @@ export default function Home() {
   };
 
   return (
-    <div className="main">
+    <div className="main flex flex-col h-screen">
       <div className="flex w-screen font-[family-name:var(--font-geist-sans)]">
         <Header
           showSettings={showSettings}
@@ -179,10 +185,16 @@ export default function Home() {
         />
       </div>
       <div className="w-full">
-        <Timer settings={settings} />
+        <Timer settings={settings} showChatTimer={showChatTimer}/>
+      </div>
+      <div className="grow">
+        <ChatBot setShowChatTimer={setShowChatTimer} showChatTimer={showChatTimer} />
       </div>
       {spotifyExists ? (
-        <div className="w-full flex flex-col justify-center absolute bottom-0 items-center font-[family-name:var(--font-geist-sans)]">
+        <div
+          className="w-full flex flex-col justify-center sticky bottom-0 items-center font-[family-name:var(--font-geist-sans)] "
+          id="spotify-player-controls"
+        >
           <SpotifyPlayer
             session={session}
             play={play}
