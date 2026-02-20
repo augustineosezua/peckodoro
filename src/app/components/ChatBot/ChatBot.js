@@ -116,8 +116,8 @@ const ChatBot = ({ session, spotifyExists }) => {
   if (!session) return null;
 
   return (
-    <div className={`w-full flex flex-1 justify-center px-4 md:px-8 pt-10 font-[family-name:var(--font-geist-sans)] ${spotifyExists ? "pb-36" : "pb-24"}`}>
-      <div className="w-full max-w-5xl flex flex-col bg-[#f5edd8]/80 backdrop-blur-sm rounded-2xl border border-[#E0D7C3]/50 shadow-lg overflow-hidden">
+    <div className={`w-full flex flex-1 justify-center px-4 md:px-8 pt-10 font-[family-name:var(--font-geist-sans)] overflow-hidden ${spotifyExists ? "pb-36" : "pb-24"}`}>
+      <div className="w-full max-w-5xl flex flex-col bg-[#f5edd8]/80 backdrop-blur-sm rounded-2xl border border-[#E0D7C3]/50 shadow-lg overflow-hidden h-full max-h-[80vh]">
         {/* Header bar */}
         <div className="flex items-center justify-between px-4 py-2.5 border-b border-[#E0D7C3]/50 shrink-0 bg-[#f0e6ce]/80">
           <div className="flex items-center gap-3">
