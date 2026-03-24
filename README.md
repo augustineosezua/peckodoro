@@ -21,12 +21,6 @@ Peckodoro blends time management, ambient motivation, and AI-assisted productivi
 - 🤖 **ChatGPT Assistant**  
   Get study help, generate ideas, or chat with AI while you work. Requires login to use.
 
-- 🌗 **Dark Mode Ready**  
-  Seamlessly adapts for both day and night productivity.
-
-- 🔓 **No-Login Required**  
-  Core features like the timer and music controls are usable without signing in.
-
 ---
 
 ## 🖥️ Pages Overview
@@ -37,55 +31,15 @@ Peckodoro blends time management, ambient motivation, and AI-assisted productivi
 | `/login`         | Sign in to access ChatGPT and save preferences       |
 | `/settings`      | Customize timer durations and preferences            |
 | `/about`         | Learn more about the app and its mission             |
-| `/version-history` | See updates and new features as they’re added     |
+| `/versions` | See updates and new features as they’re added     |
 
 ---
 
 ## 📦 Tech Stack
 
-- **Frontend**: React (with Next.js)
-- **Backend**: Node.js + Express (for ChatGPT routing)
+- **FullStack**: React (with Next.js)
 - **Styling**: Tailwind CSS
 - **AI**: OpenAI GPT-4 API
 - **Music**: Spotify Web API
-- **Auth**: NextAuth.js
-
----
-
-## 🛠️ Getting Started
-
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/chickenjsx/peckodoro.git
-cd peckodoro
-```
-### 2. Install Dependencies
-```bash
-NEXT_PUBLIC_SPOTIFY_CLIENT_ID=your_spotify_client_id
-NEXT_PUBLIC_SPOTIFY_REDIRECT_URI=http://localhost:3000/callback
-NEXT_PUBLIC_OPENAI_API_KEY=your_openai_api_key
-```
-###4. Run the App
-```bash
-npm run dev
-```
-✅ To-Do / Roadmap
-
-✅Basic Pomodoro Timer
-
- User Authentication
- 
- Save user preferences (dark mode, timer lengths)
-
- Spotify Integration
-
- ChatGPT Access
-
- Cross-platform notifications
-
- Study stats and analytics (future)
-
-📄 License
-MIT License. See LICENSE file for details.
+- **Auth**: betterAuth.js
 
