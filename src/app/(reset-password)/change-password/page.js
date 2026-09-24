@@ -112,44 +112,46 @@ export default function ChangePassword() {
 
   console.log("Token:", token);
   return (
-    <div className="h-screen flex flex-col justify-center items-center font-[family-name:var(--font-figtree)]">
+    <div className="min-h-screen flex flex-col justify-center items-center px-4 text-ink">
+      <div className="sticker w-full max-w-md bg-shell rounded-2xl p-6 md:p-8 flex flex-col items-center">
       <span
-        className="text-3xl mb-4 font-bold cursor-pointer"
+        className="font-[family-name:var(--font-display)] font-extrabold text-3xl mb-5 cursor-pointer"
         onClick={() => router.push("/")}
       >
-        Peckodoro
+        Choose a new password
       </span>
-      <form className="flex flex-col items-center w-md">
+      <form className="flex flex-col items-center w-full">
         <input
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Email"
-          className="mb-4 p-2 border rounded w-3/4"
+          className="mb-3 w-full px-3 py-2.5 rounded-xl bg-white border-2 border-ink/25 focus:border-ink outline-none placeholder-ink/45 transition-colors"
         />
         <input
           type="password"
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
-          placeholder="New Password"
-          className="mb-4 p-2 border rounded w-3/4"
+          placeholder="New password"
+          className="mb-3 w-full px-3 py-2.5 rounded-xl bg-white border-2 border-ink/25 focus:border-ink outline-none placeholder-ink/45 transition-colors"
         />
         <input
           type="password"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
-          placeholder="Confirm New Password"
-          className="mb-4 p-2 border rounded w-3/4"
+          placeholder="Confirm new password"
+          className="mb-3 w-full px-3 py-2.5 rounded-xl bg-white border-2 border-ink/25 focus:border-ink outline-none placeholder-ink/45 transition-colors"
         />
         <button
           onClick={async (e) => {
             change(e);
           }}
-          className="p-2 bg-black cursor-pointer text-white rounded w-3/4"
+          className="sticker-btn mt-2 w-full py-3 bg-beak rounded-xl font-bold cursor-pointer"
         >
-          Change Password
+          Change password
         </button>
       </form>
+      </div>
     </div>
   );
 }

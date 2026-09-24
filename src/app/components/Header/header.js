@@ -4,7 +4,12 @@ import { signIn, signOut, useSession } from "@/app/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-const Header = ({ showSettings, setShowSettings, session }) => {
+const Header = ({
+  showSettings,
+  setShowSettings,
+  session,
+  compact = false,
+}) => {
   const router = useRouter();
   const handleClick = () => {
     if (session) {
@@ -20,44 +25,58 @@ const Header = ({ showSettings, setShowSettings, session }) => {
     }
   };
   return (
-    <div className="flex w-screen justify-between items-center py-4 md:px-8 px-4 border-b">
-      <div className="font-semibold text-2xl cursor-default">
-        Peckodoro{" "}
-        <a
-          className="text-sm text-gray-500 cursor-pointer"
-          href="/versions/"
-          target="blank"
+    <header className="flex w-full justify-between items-center py-4 md:px-8 px-4">
+      <div className="flex items-center gap-3 cursor-default">
+        <Image
+          src="/peckodoro.png"
+          width={44}
+          height={44}
+          alt=""
+          className="rounded-full border-2 border-ink"
+          priority
+        />
+        <span
+          className={`font-[family-name:var(--font-display)] font-extrabold text-2xl tracking-tight ${
+            compact ? "hidden lg:inline" : ""
+          }`}
         >
-          0.2.5
+          Peckodoro
+        </span>
+        <a
+          className={`${compact ? "hidden xl:inline" : "hidden sm:inline"} text-xs font-semibold text-ink/60 hover:text-ink underline-offset-2 hover:underline`}
+          href="/versions/"
+          target="_blank"
+          title="See what's new"
+        >
+          v0.2.5
         </a>
       </div>
-      <div className="flex gap-4">
-        <div
-          className="border p-2 rounded-lg cursor-pointer flex items-center gap-2"
+      <nav className="flex gap-2 md:gap-3">
+        <button
+          type="button"
+          className="sticker-btn bg-shell px-3 py-2 rounded-xl cursor-pointer flex items-center gap-2 font-semibold"
           onClick={() => {
             setShowSettings(true);
           }}
+          aria-label="Settings"
         >
-          <Image
-            width={25}
-            src="/settings.svg"
-            height={25}
-            alt="settings-icon"
-          ></Image>{" "}
-          Settings
-        </div>
+          <Image width={20} src="/settings.svg" height={20} alt="" />
+          <span className="hidden sm:inline">Settings</span>
+        </button>
 
-        <div
-          className="border p-2 rounded-lg cursor-pointer flex items-center gap-2"
+        <button
+          type="button"
+          className={`sticker-btn px-4 py-2 rounded-xl cursor-pointer font-semibold ${
+            session ? "bg-shell" : "bg-yolk"
+          }`}
           onClick={() => {
             handleClick();
           }}
         >
-          {session ? "Sign Out" : "Log in"}
-        </div>
-        {/*<div className="border p-2 rounded-lg cursor-pointer">Sign in</div>*/}
-      </div>
-    </div>
+          {session ? "Sign out" : "Log in"}
+        </button>
+      </nav>
+    </header>
   );
 };
 

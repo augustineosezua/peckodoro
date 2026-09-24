@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/app/lib/auth";
+import { isAdminEmail } from "@/app/lib/admins";
 
-export async function POST(request, { params }) {
-  const adminEmails = ["augustineosezua1@gmail.com", "tristanmerkley@gmail.com", "patrickosezua1@gmail.com"];
-  const { email } = await request.json();
+// Answers for the signed-in user only, never for an email the client sends
+export async function POST(request) {
+  const session = await auth.api.getSession({ headers: request.headers });
   return NextResponse.json({
-    isAdmin: !!email && adminEmails.includes(email),
+    isAdmin: isAdminEmail(session?.user?.email),
   });
 }

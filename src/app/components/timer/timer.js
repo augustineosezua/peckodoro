@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import useSound from "use-sound";
 
 const Timer = (props) => {
-  const { settings } = props;
+  const { settings, onModeChange, compact = false, onExpand } = props;
   const focusDone = useRef(0);
   const sequenceSet = useRef(false);
   const [currentMode, setCurrentMode] = useState("Focus Time"); // default to focus
@@ -14,14 +14,15 @@ const Timer = (props) => {
   const laspe = useRef(null);
   const startTimeRef = useRef(null);
   const [playAlarm, setPlayAlarm] = useState(true);
+  const [roundsDone, setRoundsDone] = useState(0);
 
   useEffect(() => {
     const currentMinutes = getCurrentModeMinutes();
     const newDuration = currentMinutes * 60 * 1000;
-   if(Math.max(0, newDuration - laspe.current) == 0){
-    if (playAlarm) playSound();
-    resetTimer()
-   }
+    if (Math.max(0, newDuration - laspe.current) == 0) {
+      if (playAlarm) playSound();
+      resetTimer();
+    }
 
     const didDurationChange =
       Math.abs(timeLeft - newDuration) > 100 ||
@@ -30,8 +31,8 @@ const Timer = (props) => {
     if (didDurationChange && startTimeRef.current && isRunning) {
       pauseTimer();
       setTimeLeft(Math.max(0, newDuration - laspe.current));
-    }else{
-      setTimeLeft(newDuration)
+    } else {
+      setTimeLeft(newDuration);
     }
   }, [
     currentMode === "Focus Time" ? settings.focusTime : null,
@@ -86,6 +87,8 @@ const Timer = (props) => {
     }
 
     if (currentMode === "Long Break") focusDone.current = 0;
+    setRoundsDone(focusDone.current);
+    onModeChange?.(currentMode);
   }, [currentMode]);
 
   useEffect(() => {
@@ -143,47 +146,122 @@ const Timer = (props) => {
     .toString()
     .padStart(2, "0");
 
-  return (
-    <div className="w-full flex-col flex justify-center items-center  font-[family-name:var(--font-chivo-mono)] pt-5 grow">
-      <div className="flex md:gap-4 px-2 text-center">
-        <div
-          className={`px-4 py-2 cursor-pointer rounded-lg ${
-            currentMode == "Focus Time" ? "bg-[#E9CBA7]" : ""
-          }`}
-          onClick={() => changeMode("Focus Time")}
-        >
-          Focus Time
-        </div>
-        <div
-          className={`px-4 py-2 cursor-pointer rounded-lg ${
-            currentMode == "Short Break" ? "bg-[#E9CBA7]" : ""
-          }`}
-          onClick={() => changeMode("Short Break")}
-        >
-          Short Break
-        </div>
-        <div
-          className={`px-4 py-2 cursor-pointer rounded-lg ${
-            currentMode == "Long Break" ? "bg-[#E9CBA7]" : ""
-          }`}
-          onClick={() => changeMode("Long Break")}
-        >
-          Long Break
-        </div>
-      </div>
-      <div className="md:text-9xl text-8xl font-bold cursor-default px-2 w-full flex justify-center">
-        {minutes}:{seconds}
-      </div>
-      <div className="py-3">
+  const modes = ["Focus Time", "Short Break", "Long Break"];
+  const totalRounds = Math.min(Math.max(settings.focusBeforeLong || 1, 1), 12);
+  const filledRounds =
+    currentMode === "Long Break"
+      ? totalRounds
+      : Math.min(roundsDone, totalRounds);
+  const clock = `${minutes}:${seconds}`;
+  const digits = clock.split("").map((ch, i) => (
+    <span key={i} className={ch === ":" ? "clock-colon" : "clock-digit"}>
+      {ch}
+    </span>
+  ));
+
+  // Compact pill that lives in the header while the chat has the stage.
+  // Same component instance as the full timer, so a running session never resets.
+  if (compact) {
+    return (
+      <div className="pop-in flex items-center gap-2 bg-shell border-2 border-ink rounded-full pl-4 pr-1.5 py-1.5">
         <button
+          type="button"
+          onClick={onExpand}
+          title="Show the full timer"
+          className="flex items-baseline gap-2 cursor-pointer"
+        >
+          <span className="hidden sm:inline text-xs font-semibold text-ink/60">
+            {currentMode}
+          </span>
+          <span
+            role="timer"
+            aria-label={`${currentMode}: ${minutes} minutes ${seconds} seconds left`}
+            className="font-[family-name:var(--font-display)] font-extrabold text-2xl leading-none"
+          >
+            {digits}
+          </span>
+        </button>
+        <button
+          type="button"
           onClick={!isRunning ? continueTimer : pauseTimer}
-          className={`px-14 py-2 rounded-lg shadow-md text-lg cursor-pointer font-[family-name:var(--font-chivo-mono)] ${
-            isRunning ? "bg-[#C86B5A] text-white " : "bg-[#F4A261] glow"
+          aria-label={
+            isRunning ? "Pause" : !timerRef.current ? "Start" : "Continue"
+          }
+          className={`w-9 h-9 rounded-full border-2 border-ink flex items-center justify-center cursor-pointer shrink-0 ${
+            isRunning ? "bg-shell" : "bg-beak"
           }`}
         >
-          {isRunning ? "Pause" : !timerRef.current ? "Start" : "Continue"}
+          {isRunning ? (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <rect x="5" y="4" width="5" height="16" rx="1.5" />
+              <rect x="14" y="4" width="5" height="16" rx="1.5" />
+            </svg>
+          ) : (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5Z" />
+            </svg>
+          )}
         </button>
       </div>
+    );
+  }
+
+  return (
+    <div className="w-full flex-col flex justify-center items-center pt-6 md:pt-10 grow">
+      <div
+        role="tablist"
+        aria-label="Timer mode"
+        className="sticker flex rounded-full bg-shell p-1 text-sm md:text-base font-semibold"
+      >
+        {modes.map((mode) => (
+          <button
+            key={mode}
+            role="tab"
+            aria-selected={currentMode === mode}
+            onClick={() => changeMode(mode)}
+            className={`px-3 md:px-5 py-1.5 rounded-full cursor-pointer transition-colors ${
+              currentMode === mode
+                ? "bg-ink text-shell"
+                : "text-ink/70 hover:text-ink hover:bg-straw"
+            }`}
+          >
+            {mode}
+          </button>
+        ))}
+      </div>
+
+      <div
+        className="font-[family-name:var(--font-display)] font-extrabold leading-none tracking-tight cursor-default text-[5.5rem] sm:text-[8rem] md:text-[11rem] pt-4 pb-2 select-none"
+        role="timer"
+        aria-label={`${minutes} minutes ${seconds} seconds left`}
+      >
+        {digits}
+      </div>
+
+      <div
+        className="flex items-center gap-2 pb-6"
+        aria-label={`${filledRounds} of ${totalRounds} focus sessions done before the long break`}
+      >
+        {Array.from({ length: totalRounds }).map((_, i) => (
+          <span
+            key={i}
+            className={`block w-4 h-5 rounded-[50%_50%_50%_50%/60%_60%_40%_40%] border-2 ${
+              i < filledRounds
+                ? "bg-yolk border-ink"
+                : "bg-ink/15 border-transparent"
+            }`}
+          />
+        ))}
+      </div>
+
+      <button
+        onClick={!isRunning ? continueTimer : pauseTimer}
+        className={`sticker-btn min-w-48 px-10 py-3 rounded-full text-xl font-bold cursor-pointer ${
+          isRunning ? "bg-shell text-ink" : "bg-beak text-ink"
+        }`}
+      >
+        {isRunning ? "Pause" : !timerRef.current ? "Start" : "Continue"}
+      </button>
     </div>
   );
 };

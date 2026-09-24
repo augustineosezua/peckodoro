@@ -60,6 +60,8 @@ export const auth = betterAuth({
   },
   trustedOrigins: [
     "http://localhost:3000",
+    // Spotify rejects http://localhost redirects; local OAuth has to run on the loopback IP
+    "http://127.0.0.1:3000",
     "https://peckodoro.vercel.app",
     "https://peckodoro-git-prev-chickenjs-projects.vercel.app",
   ],

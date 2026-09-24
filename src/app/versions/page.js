@@ -1,7 +1,6 @@
 "use client";
 import React, { useState } from "react";
 import Head from "next/head";
-import "./versions.css";
 
 const versionHistory = [
   {
@@ -32,28 +31,45 @@ const versionHistory = [
 
 export default function VersionHistoryPage() {
   return (
-    <main className="max-w-2xl mx-auto p-6 font-[family-name:var(--font-geist-sans)]">
+    <main className="max-w-2xl mx-auto px-4 md:px-6 py-10 text-ink">
       <Head>
         <title>Peckodoro - Versions</title>
       </Head>
-      <h1 className="text-3xl font-bold mb-6 flex justify-between items-end">
-        Version History{" "}
-        <a href="../" className="text-base">
-          Back to Peckodoro
-        </a>
+      <a
+        href="../"
+        className="text-sm font-semibold underline underline-offset-2 text-ink/70 hover:text-ink"
+      >
+        Back to the timer
+      </a>
+      <h1 className="font-[family-name:var(--font-display)] font-extrabold text-4xl tracking-tight pt-3 pb-8">
+        What&apos;s new
       </h1>
-      <ul className="space-y-4">
-        {versionHistory.map(({ version, date, description }) => (
-          <li
-            key={version}
-            className="p-4 border border-[#FAF3E0] rounded-lg shadow-sm bg-white"
-          >
-            <div className="text-xl font-semibold">{version}</div>
-            <div className="text-sm text-gray-500">{date}</div>
-            <p className="mt-2 text-gray-700">{description}</p>
+      <ol className="relative border-l-2 border-ink ml-2 space-y-8">
+        {versionHistory.map(({ version, date, description }, i) => (
+          <li key={version} className="relative pl-6">
+            <span
+              className={`absolute -left-[9px] top-1.5 w-4 h-4 rounded-full border-2 border-ink ${
+                i === 0 ? "bg-yolk" : "bg-shell"
+              }`}
+            />
+            <div className="flex items-baseline gap-3">
+              <h2 className="font-[family-name:var(--font-display)] font-bold text-xl">
+                {version}
+              </h2>
+              <time dateTime={date} className="text-sm text-ink/60">
+                {new Date(date + "T00:00:00").toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </time>
+            </div>
+            <p className="mt-1.5 leading-relaxed text-ink/85 max-w-prose">
+              {description}
+            </p>
           </li>
         ))}
-      </ul>
+      </ol>
     </main>
   );
 }
