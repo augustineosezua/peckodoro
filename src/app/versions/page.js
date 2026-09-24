@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import Head from "next/head";
+import Link from "next/link";
 
 const versionHistory = [
   {
@@ -35,12 +36,12 @@ export default function VersionHistoryPage() {
       <Head>
         <title>Peckodoro - Versions</title>
       </Head>
-      <a
-        href="../"
+      <Link
+        href="/"
         className="text-sm font-semibold underline underline-offset-2 text-ink/70 hover:text-ink"
       >
         Back to the timer
-      </a>
+      </Link>
       <h1 className="font-[family-name:var(--font-display)] font-extrabold text-4xl tracking-tight pt-3 pb-8">
         What&apos;s new
       </h1>

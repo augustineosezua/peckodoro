@@ -9,6 +9,7 @@ import {
 } from "@/app/lib/auth-client";
 import { toast } from "sonner";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function LoginPage() {
   toast.dismiss();
@@ -152,7 +153,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col justify-center items-center px-4 py-10 text-ink">
       <div className="sticker w-full max-w-md bg-shell rounded-2xl p-6 md:p-8 space-y-6">
-        <a href="/" className="flex flex-col items-center gap-3">
+        <Link href="/" className="flex flex-col items-center gap-3">
           <Image
             src="/peckodoro.png"
             width={72}
@@ -164,7 +165,7 @@ export default function LoginPage() {
           <span className="font-[family-name:var(--font-display)] font-extrabold text-3xl tracking-tight">
             {signingUp ? "Make an account" : "Welcome back"}
           </span>
-        </a>
+        </Link>
         <form
           onSubmit={handleEmailSign}
           className="space-y-4"

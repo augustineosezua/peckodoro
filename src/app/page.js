@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import Link from "next/link";
 import Header from "./components/Header/header";
 import Timer from "./components/timer/timer";
 import { useState, useEffect, useRef } from "react";
@@ -193,12 +194,12 @@ export default function Home() {
       ) : (
         <div className="w-full flex flex-1 justify-center items-start px-4 md:px-8 pt-10">
           <p className="text-sm text-ink/70 max-w-xs text-center">
-            <a
+            <Link
               href="/login"
               className="font-semibold text-ink underline underline-offset-2"
             >
               Log in
-            </a>{" "}
+            </Link>{" "}
             to save your timer settings and ask the study assistant questions.
           </p>
         </div>
