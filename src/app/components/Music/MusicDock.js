@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
@@ -241,7 +242,14 @@ export default function MusicDock({
         {/* Now playing */}
         <div className="flex items-center gap-3 min-w-0">
           {art ? (
-            <img src={art} alt="" className="w-12 h-12 rounded-lg border-2 border-ink object-cover shrink-0" />
+            <Image
+              src={art}
+              alt=""
+              width={48}
+              height={48}
+              unoptimized
+              className="w-12 h-12 rounded-lg border-2 border-ink object-cover shrink-0"
+            />
           ) : (
             <span className="w-12 h-12 rounded-lg border-2 border-ink bg-straw shrink-0 flex items-center justify-center">
               <Mark size={22} />

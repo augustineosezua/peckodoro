@@ -16,7 +16,8 @@ export async function GET(request) {
       { headers: { "Cache-Control": "no-store" } }
     );
   } catch (err) {
-    console.error(err);
+    // Shows in Vercel's runtime logs with the exact cause (never the key itself)
+    console.error("Apple Music developer token failed:", err.message);
     return NextResponse.json({ error: "Apple Music isn't set up" }, { status: 500 });
   }
 }

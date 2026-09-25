@@ -14,8 +14,15 @@ const RENEW_BEFORE_MS = 24 * 60 * 60 * 1000;
 
 let cached = null; // { token, expiresAt }
 
-// The key is stored on one line with literal \n for its line breaks
-const privateKeyPem = () => (process.env.APPLE_MUSIC_PRIVATE_KEY || "").replace(/\\n/g, "\n");
+// The .p8 key, however it was pasted: on one line with literal \n (as in .env),
+// with real line breaks, or still wrapped in the quotes from .env (Vercel keeps
+// quotes as part of the value)
+const privateKeyPem = () =>
+  (process.env.APPLE_MUSIC_PRIVATE_KEY || "")
+    .trim()
+    .replace(/^(["'])([\s\S]*)\1$/, "$2")
+    .replace(/\\n/g, "\n")
+    .trim();
 
 const base64url = (obj) => Buffer.from(JSON.stringify(obj)).toString("base64url");
 
@@ -24,8 +31,11 @@ export function getDeveloperToken() {
   if (cached && cached.expiresAt - Date.now() > RENEW_BEFORE_MS) return cached;
 
   const { APPLE_MUSIC_TEAM_ID, APPLE_MUSIC_KEY_ID } = process.env;
-  if (!APPLE_MUSIC_TEAM_ID || !APPLE_MUSIC_KEY_ID || !process.env.APPLE_MUSIC_PRIVATE_KEY) {
-    throw new Error("Apple Music keys are missing from the environment");
+  const missing = ["APPLE_MUSIC_TEAM_ID", "APPLE_MUSIC_KEY_ID", "APPLE_MUSIC_PRIVATE_KEY"].filter(
+    (name) => !process.env[name]
+  );
+  if (missing.length) {
+    throw new Error(`Apple Music env vars missing: ${missing.join(", ")}`);
   }
 
   const now = Math.floor(Date.now() / 1000);
@@ -33,7 +43,12 @@ export function getDeveloperToken() {
     base64url({ alg: "ES256", kid: APPLE_MUSIC_KEY_ID }) +
     "." +
     base64url({ iss: APPLE_MUSIC_TEAM_ID, iat: now, exp: now + LIFETIME_S });
-  const key = createPrivateKey(privateKeyPem());
+  let key;
+  try {
+    key = createPrivateKey(privateKeyPem());
+  } catch (err) {
+    throw new Error(`APPLE_MUSIC_PRIVATE_KEY isn't a readable .p8 key: ${err.message}`);
+  }
   const signature = sign("sha256", Buffer.from(unsigned), {
     key,
     dsaEncoding: "ieee-p1363",

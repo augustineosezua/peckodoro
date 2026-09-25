@@ -4,10 +4,14 @@ import { prisma } from "@/app/lib/prisma";
 import { isAdminEmail } from "@/app/lib/admins";
 import Home from "./Home";
 
+// Rendered per request: the page depends on who's visiting, so it must never
+// be prerendered at build time
+export const dynamic = "force-dynamic";
+
 // Work out who's visiting while the page renders, so it arrives already
 // signed in (or out) with their timer settings, not after a chain of requests.
-async function loadVisitor() {
-  const found = await auth.api.getSession({ headers: await headers() });
+async function loadVisitor(requestHeaders) {
+  const found = await auth.api.getSession({ headers: requestHeaders });
   if (!found?.user) return { session: null, settings: null, isAdmin: false, spotifyLinked: false };
 
   const { id, email, name, image } = found.user;
@@ -33,8 +37,11 @@ async function loadVisitor() {
 }
 
 export default async function Page() {
-  // If this fails, the page falls back to checking in the browser
-  const initial = await loadVisitor().catch((err) => {
+  // Read outside the catch below: Next signals "render this per request" by
+  // throwing from headers(), and that must reach Next, not be swallowed
+  const requestHeaders = await headers();
+  // If loading fails, the page falls back to checking in the browser
+  const initial = await loadVisitor(requestHeaders).catch((err) => {
     console.error("Couldn't preload the visitor", err);
     return null;
   });

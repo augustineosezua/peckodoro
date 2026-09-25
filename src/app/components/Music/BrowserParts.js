@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 export const QUICK_SEARCHES = ["Lo-fi beats", "Classical focus", "Rain sounds", "Deep focus", "Jazz for study"];
@@ -40,10 +41,13 @@ export function Row({ image, tile, title, subtitle, meta, active, onClick, onQue
       {tile ? (
         tile
       ) : image ? (
-        <img
+        // Covers come from Spotify/Apple already sized, so skip Next's optimizer
+        <Image
           src={image}
           alt=""
-          loading="lazy"
+          width={44}
+          height={44}
+          unoptimized
           className={`w-11 h-11 object-cover border-2 border-ink/15 shrink-0 ${
             round ? "rounded-full" : "rounded-lg"
           }`}

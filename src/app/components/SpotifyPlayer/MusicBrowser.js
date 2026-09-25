@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import {
   BrowserShell,
@@ -371,9 +372,12 @@ export default function MusicBrowser({ spotify, onClose, notice }) {
               {openPlaylist.meta.liked ? (
                 <LikedTile size="w-20 h-20" icon={34} />
               ) : smallestImage(openPlaylist.meta.images) ? (
-                <img
+                <Image
                   src={openPlaylist.meta.images[0].url}
                   alt=""
+                  width={80}
+                  height={80}
+                  unoptimized
                   className="w-20 h-20 rounded-xl object-cover border-2 border-ink"
                 />
               ) : null}

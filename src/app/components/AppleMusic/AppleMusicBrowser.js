@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { useEffect, useId, useRef, useState } from "react";
 import {
   BrowserShell,
@@ -345,9 +346,12 @@ export default function AppleMusicBrowser({ music, onClose, notice }) {
             </button>
             <div className="flex items-center gap-3 px-2 pb-3">
               {artworkUrl(Attr(openPlaylist.meta).artwork) ? (
-                <img
+                <Image
                   src={artworkUrl(Attr(openPlaylist.meta).artwork, 160)}
                   alt=""
+                  width={80}
+                  height={80}
+                  unoptimized
                   className="w-20 h-20 rounded-xl object-cover border-2 border-ink"
                 />
               ) : null}
