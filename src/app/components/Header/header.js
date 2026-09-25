@@ -20,7 +20,7 @@ const Header = ({ showSettings, setShowSettings, session }) => {
     }
   };
   return (
-    <header className="flex w-full justify-between items-center py-4 md:px-8 px-4">
+    <header className="flex w-full justify-between items-center py-4 md:px-8 px-4 border-b-2 border-ink">
       <div className="flex items-center gap-3 cursor-default">
         <Image
           src="/peckodoro.png"
@@ -50,6 +50,7 @@ const Header = ({ showSettings, setShowSettings, session }) => {
             setShowSettings(true);
           }}
           aria-label="Settings"
+          data-tour="settings"
         >
           <Image width={20} src="/settings.svg" height={20} alt="" />
           <span className="hidden sm:inline">Settings</span>

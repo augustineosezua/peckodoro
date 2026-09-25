@@ -69,7 +69,7 @@ function Row({ image, tile, title, subtitle, meta, active, onClick, onQueue, rou
   return (
     <div
       className={`group flex items-center rounded-xl transition-colors ${
-        active ? "bg-yolk" : onClick ? "hover:bg-straw" : ""
+        active ? "bg-yolk" : onClick ? "hover:bg-ink/10" : ""
       }`}
     >
     <Tag
@@ -174,7 +174,7 @@ const Note = ({ children }) => (
 
 const artistNames = (artists) => (artists || []).map((a) => a.name).join(", ");
 
-export default function MusicBrowser({ spotify, onClose, pauseOnBreaks, setPauseOnBreaks }) {
+export default function MusicBrowser({ spotify, onClose, pauseOnBreaks, setPauseOnBreaks, notice }) {
   const { api, playContext, playTracks, playback, addToQueue, queueVersion, missingScopes, reconnect } =
     spotify;
   const lacks = (scopes) => scopes.some((sc) => missingScopes.includes(sc));
@@ -354,26 +354,39 @@ export default function MusicBrowser({ spotify, onClose, pauseOnBreaks, setPause
   ];
 
   return (
-    <div className="fixed inset-x-0 top-0 bottom-20 z-[60]" role="dialog" aria-modal="true" aria-label="Browse music">
-      <div className="absolute inset-0 bg-ink/25" onClick={onClose} />
-      <div className="absolute right-0 top-0 bottom-0 w-full sm:w-[440px] bg-shell border-l-2 border-ink flex flex-col">
-        <div className="flex items-center justify-between px-4 pt-4 pb-3">
-          <h2 className="font-[family-name:var(--font-display)] font-extrabold text-2xl flex items-center gap-2">
+    // Wide screens: takes the study assistant's column. Narrow: a sheet above the music bar.
+    <div
+      className="fixed inset-x-0 top-0 bottom-[var(--dock-h)] z-[60] lg:static lg:z-auto lg:flex lg:w-[26rem] lg:shrink-0"
+      role="region"
+      aria-label="Music"
+    >
+      <div className="absolute inset-0 bg-ink/25 lg:hidden" onClick={onClose} />
+      <div className="pop-in absolute right-0 top-0 bottom-0 w-full sm:w-[440px] lg:static lg:w-full lg:flex-1 bg-surface border-l-2 border-ink flex flex-col min-h-0">
+        {/* Same header bar as the study assistant, so swapping panels feels like one place */}
+        <div className="flex items-center gap-1 px-3 md:px-6 h-12 border-b-2 border-ink bg-yolk shrink-0">
+          <h2 className="font-[family-name:var(--font-display)] font-bold text-base flex-1 truncate">
             Music
           </h2>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close music"
-            className="p-2 rounded-lg hover:bg-ink/10 cursor-pointer"
+            title="Close music"
+            className="p-1.5 rounded-lg hover:bg-ink/10 cursor-pointer transition-colors"
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
             </svg>
           </button>
         </div>
 
-        <div role="tablist" className="mx-4 flex rounded-full border-2 border-ink p-1 text-sm font-semibold">
+        {notice ? (
+          <div className="flex-1 flex flex-col items-center justify-center gap-3 px-6 text-center">
+            {notice}
+          </div>
+        ) : (
+          <>
+        <div role="tablist" className="mx-4 mt-3 flex rounded-full border-2 border-ink p-1 text-sm font-semibold shrink-0">
           {tabs.map(([id, label]) => (
             <button
               key={id}
@@ -384,7 +397,7 @@ export default function MusicBrowser({ spotify, onClose, pauseOnBreaks, setPause
                 setLoadError(null);
               }}
               className={`flex-1 px-3 py-1.5 rounded-full cursor-pointer transition-colors ${
-                tab === id ? "bg-ink text-shell" : "text-ink/70 hover:text-ink hover:bg-straw"
+                tab === id ? "bg-ink text-shell" : "text-ink/70 hover:text-ink hover:bg-ink/10"
               }`}
             >
               {label}
@@ -675,7 +688,10 @@ export default function MusicBrowser({ spotify, onClose, pauseOnBreaks, setPause
           ) : null}
         </div>
 
-        <div className="flex items-center justify-between gap-3 px-4 py-2.5 border-t border-ink/10">
+          </>
+        )}
+
+        <div className="flex items-center justify-between gap-3 px-4 min-h-[var(--dock-h)] border-t-2 border-ink shrink-0">
           <label className="flex items-center gap-2 text-sm font-semibold cursor-pointer">
             <button
               type="button"

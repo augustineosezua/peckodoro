@@ -29,24 +29,18 @@ const BACK = "M15 18l-6-6 6-6";
 const CHAT =
   "M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z";
 
-// The assistant lives in a dock beside the timer: open on a wide screen, a
-// launcher on a narrow one. Nothing here moves the timer off centre.
-const ChatBot = ({ session }) => {
-  const [open, setOpen] = useState(false);
+// The assistant lives in the side column beside the timer. The page decides
+// whether it's open (it shares that column with the music panel) and owns the
+// side rail's launcher; narrow screens get a floating launcher from here.
+const ChatBot = ({ session, open, setOpen, unread, setUnread }) => {
   const [conversations, setConversations] = useState([]);
   const [activeConversation, setActiveConversation] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
-  const [unread, setUnread] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
-
-  // Docked by default where there's room for it next to the timer
-  useEffect(() => {
-    setOpen(window.matchMedia("(min-width: 1024px)").matches);
-  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -162,21 +156,6 @@ const ChatBot = ({ session }) => {
   if (!open) {
     return (
       <>
-        {/* Wide screens: a slim rail keeps the assistant in sight */}
-        <div className="hidden lg:flex shrink-0 w-14 border-l-2 border-ink/15 flex-col items-center pt-3">
-          <button
-            type="button"
-            onClick={openDock}
-            title="Open the study assistant"
-            aria-label="Open the study assistant"
-            className="sticker-btn bg-yolk w-10 h-10 rounded-xl flex items-center justify-center cursor-pointer relative"
-          >
-            {icon(CHAT, 18)}
-            {unread && (
-              <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-beak border-2 border-ink" />
-            )}
-          </button>
-        </div>
         {/* Narrow screens: a floating button, out of the timer's way */}
         <button
           type="button"
@@ -206,11 +185,11 @@ const ChatBot = ({ session }) => {
         className="lg:hidden fixed inset-0 z-30 bg-ink/30 cursor-default"
       />
       <aside
-        className="pop-in fixed inset-y-0 right-0 z-40 w-full max-w-sm flex flex-col bg-shell border-t-2 border-l-2 border-ink
+        className="pop-in fixed inset-y-0 right-0 z-40 w-full max-w-sm flex flex-col bg-surface border-t-2 lg:border-t-0 border-l-2 border-ink
                    lg:static lg:z-auto lg:max-w-none lg:w-[26rem] lg:shrink-0"
         aria-label="Study assistant"
       >
-        <div className="flex items-center gap-1 px-3 md:px-6 py-2.5 border-b-2 border-ink bg-yolk shrink-0">
+        <div className="flex items-center gap-1 px-3 md:px-6 h-12 border-b-2 border-ink bg-yolk shrink-0">
           <span className="font-[family-name:var(--font-display)] font-bold text-base flex-1 truncate">
             Study assistant
           </span>
@@ -243,12 +222,12 @@ const ChatBot = ({ session }) => {
 
         <div className="relative flex-1 flex flex-col min-h-0">
           {showHistory && (
-            <div className="absolute inset-0 z-10 flex flex-col bg-shell">
+            <div className="absolute inset-0 z-10 flex flex-col bg-surface">
               <div className="flex items-center gap-2 px-2 py-2 border-b-2 border-ink/15 shrink-0">
                 <button
                   onClick={() => setShowHistory(false)}
                   aria-label="Back to the conversation"
-                  className="p-1.5 rounded-lg hover:bg-straw cursor-pointer transition-colors"
+                  className="p-1.5 rounded-lg hover:bg-ink/10 cursor-pointer transition-colors"
                 >
                   {icon(BACK)}
                 </button>
@@ -266,7 +245,7 @@ const ChatBot = ({ session }) => {
                     <div
                       key={convo.id}
                       onClick={() => loadConversation(convo.id)}
-                      className={`group flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer hover:bg-straw transition-colors ${
+                      className={`group flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer hover:bg-ink/10 transition-colors ${
                         activeConversation === convo.id ? "bg-yolk" : ""
                       }`}
                     >
@@ -318,7 +297,7 @@ const ChatBot = ({ session }) => {
                       <button
                         key={s}
                         onClick={() => sendMessage(s)}
-                        className="sticker-btn bg-shell rounded-xl px-3 py-2 text-sm font-semibold text-left cursor-pointer"
+                        className="sticker-btn bg-shell rounded-xl px-3 py-2 text-sm font-semibold text-center cursor-pointer"
                       >
                         {s}
                       </button>
@@ -365,9 +344,9 @@ const ChatBot = ({ session }) => {
             </div>
           </div>
 
-          {/* 80px tall with the music bar's padding, so both rules line up */}
-          <div className="px-3 md:px-6 py-1 min-h-20 flex flex-col justify-center border-t-2 border-ink shrink-0">
-            <div className="composer flex items-end gap-2 bg-white border-2 border-ink/25 rounded-2xl pl-4 pr-1 py-1">
+          {/* Same height as the music bar (--dock-h), so both top rules line up */}
+          <div className="px-3 md:px-6 py-2.5 min-h-[var(--dock-h)] flex flex-col justify-center gap-1.5 border-t-2 border-ink shrink-0">
+            <div className="composer flex items-end gap-2 bg-white border-2 border-ink/25 rounded-2xl pl-4 pr-1 py-0.5">
               <textarea
                 ref={inputRef}
                 rows={1}
@@ -380,13 +359,13 @@ const ChatBot = ({ session }) => {
                 placeholder={empty ? "Ask a question" : "Ask a follow-up"}
                 aria-label="Message the study assistant"
                 disabled={loading}
-                className="flex-1 resize-none bg-transparent outline-none focus-visible:outline-none placeholder-ink/45 text-ink text-sm leading-relaxed py-2 max-h-40"
+                className="flex-1 resize-none bg-transparent outline-none focus-visible:outline-none placeholder-ink/45 text-ink text-sm leading-relaxed py-1.5 max-h-40"
               />
               <button
                 onClick={() => sendMessage()}
                 disabled={loading || !input.trim()}
                 aria-label="Send message"
-                className="sticker-btn bg-beak w-9 h-9 rounded-xl flex items-center justify-center cursor-pointer shrink-0"
+                className="sticker-btn bg-beak w-8 h-8 mb-0.5 rounded-xl flex items-center justify-center cursor-pointer shrink-0"
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                   <path
@@ -396,7 +375,7 @@ const ChatBot = ({ session }) => {
                 </svg>
               </button>
             </div>
-            <p className="text-[11px] leading-tight text-ink/55 text-center pt-1">
+            <p className="text-[11px] leading-tight text-ink/55 text-center">
               Double-check anything you&apos;ll be graded on.
             </p>
           </div>

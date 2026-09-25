@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { toast } from "sonner";
 import { useSpotify } from "./useSpotify";
 import MusicBrowser, { SpotifyMark, msToClock } from "./MusicBrowser";
@@ -90,7 +91,7 @@ function DevicePicker({ spotify, className }) {
                   setOpen(false);
                 }}
                 className={`w-full flex items-center justify-between gap-3 px-2 py-2 rounded-xl text-left cursor-pointer ${
-                  d.is_active ? "bg-yolk" : "hover:bg-straw"
+                  d.is_active ? "bg-yolk" : "hover:bg-ink/10"
                 }`}
               >
                 <span className="min-w-0">
@@ -142,10 +143,9 @@ function Slider({ value, max, onChange, onCommit, label, disabled, className = "
   );
 }
 
-export default function SpotifyPlayer({ mode = "Focus Time" }) {
+export default function SpotifyPlayer({ mode = "Focus Time", browsing = false, setBrowsing }) {
   const spotify = useSpotify();
   const { status, error, isHere, elsewhere, playback, volume, saved, reconnect } = spotify;
-  const [browsing, setBrowsing] = useState(false);
   const [pauseOnBreaks, setPauseOnBreaksState] = useState(true);
 
   useEffect(() => setPauseOnBreaksState(readPauseOnBreaks()), []);
@@ -179,7 +179,10 @@ export default function SpotifyPlayer({ mode = "Focus Time" }) {
   }, [mode]); // eslint-disable-line react-hooks/exhaustive-deps
   const [scrub, setScrub] = useState(null);
   const [lastVolume, setLastVolume] = useState(0.5);
-  const closeBrowser = useCallback(() => setBrowsing(false), []);
+  const closeBrowser = useCallback(() => setBrowsing(false), [setBrowsing]);
+  // The page provides a slot in the side column for the music panel
+  const [slot, setSlot] = useState(null);
+  useEffect(() => setSlot(document.getElementById("side-panel")), []);
 
   const livePosition = useLivePosition(playback);
   const position = scrub ?? livePosition;
@@ -209,16 +212,37 @@ export default function SpotifyPlayer({ mode = "Focus Time" }) {
 
   return (
     <>
-      {browsing && status === "ready" ? (
+      {browsing && slot ? (
+        createPortal(
         <MusicBrowser
           spotify={spotify}
           onClose={closeBrowser}
           pauseOnBreaks={pauseOnBreaks}
           setPauseOnBreaks={setPauseOnBreaks}
-        />
+          notice={
+            status === "ready" ? null : (
+              <>
+                <p className="font-semibold">
+                  {status === "connecting" ? "Connecting to Spotify…" : error?.message}
+                </p>
+                {status === "error" && error?.canReconnect ? (
+                  <button
+                    type="button"
+                    onClick={reconnect}
+                    className="sticker-btn bg-yolk px-4 py-2 rounded-xl font-semibold cursor-pointer"
+                  >
+                    Reconnect Spotify
+                  </button>
+                ) : null}
+              </>
+            )
+          }
+        />,
+          slot
+        )
       ) : null}
 
-      <div className="relative w-full h-20 shrink-0 border-t-2 border-ink bg-shell text-ink px-3 md:px-6 grid grid-cols-[minmax(0,1fr)_auto] md:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)] items-center gap-3 md:gap-6">
+      <div className="relative w-full h-[var(--dock-h)] shrink-0 border-t-2 border-ink bg-surface text-ink px-3 md:px-6 grid grid-cols-[minmax(0,1fr)_auto] md:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)] items-center gap-3 md:gap-6">
         {/* Mobile progress along the top edge */}
         {duration ? (
           <div className="md:hidden absolute left-0 right-0 -top-[2px] h-[3px] bg-ink/10">
@@ -385,7 +409,7 @@ export default function SpotifyPlayer({ mode = "Focus Time" }) {
               onClick={() => setBrowsing((b) => !b)}
               disabled={status !== "ready"}
               aria-expanded={browsing}
-              className="sticker-btn bg-shell px-3 py-2 rounded-xl font-semibold cursor-pointer flex items-center gap-2 whitespace-nowrap"
+              className="sticker-btn bg-shell px-3 py-2 rounded-xl font-semibold cursor-pointer flex lg:hidden items-center gap-2 whitespace-nowrap"
             >
               <SpotifyMark size={18} />
               Browse music

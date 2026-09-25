@@ -1,157 +1,135 @@
 "use client";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import useSound from "use-sound";
 
+const STORAGE_KEY = "peckodoro-timer";
+const MODES = ["Focus Time", "Short Break", "Long Break"];
+// Only ring for a round that ended just now, not one that ran out while the tab was closed
+const ALARM_GRACE = 3000;
+
+const minutesFor = (mode, settings) => {
+  switch (mode) {
+    case "Short Break":
+      return settings.shortBreak;
+    case "Long Break":
+      return settings.longBreak;
+    case "Focus Time":
+    default:
+      return settings.focusTime;
+  }
+};
+
+// The round is stored as time banked while paused plus when it was last started,
+// so the clock is worked out from timestamps and survives reloads and sleeping tabs
+const freshRound = (mode, focusDone, autoStart) => ({
+  mode,
+  focusDone,
+  banked: 0,
+  startedAt: autoStart ? Date.now() : null,
+});
+
+function readSaved() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if (saved && MODES.includes(saved.mode)) return saved;
+  } catch {}
+  return null;
+}
+
 const Timer = (props) => {
-  const { settings, onModeChange } = props;
-  const focusDone = useRef(0);
-  const sequenceSet = useRef(false);
-  const [currentMode, setCurrentMode] = useState("Focus Time"); // default to focus
-  const [min, setMinutes] = useState(settings.focusTime);
-  const [isRunning, setIsRunning] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(min * 60 * 1000); // minutes to seconds
-  const timerRef = useRef(null);
-  const laspe = useRef(null);
-  const startTimeRef = useRef(null);
-  const [playAlarm, setPlayAlarm] = useState(true);
-  const [roundsDone, setRoundsDone] = useState(0);
+  // ready: settings are the user's real ones, so an overdue round can be finished
+  const { settings, onModeChange, ready = true } = props;
+  const [round, setRound] = useState(() => freshRound("Focus Time", 0, false));
+  const [loaded, setLoaded] = useState(false);
+  const [now, setNow] = useState(0);
 
-  useEffect(() => {
-    const currentMinutes = getCurrentModeMinutes();
-    const newDuration = currentMinutes * 60 * 1000;
-    if (Math.max(0, newDuration - laspe.current) == 0) {
-      if (playAlarm) playSound();
-      resetTimer();
-    }
-
-    const didDurationChange =
-      Math.abs(timeLeft - newDuration) > 100 ||
-      Math.abs(timeLeft - newDuration) < 100;
-
-    if (didDurationChange && startTimeRef.current && isRunning) {
-      pauseTimer();
-      setTimeLeft(Math.max(0, newDuration - laspe.current));
-    } else {
-      setTimeLeft(newDuration);
-    }
-  }, [
-    currentMode === "Focus Time" ? settings.focusTime : null,
-    currentMode === "Short Break" ? settings.shortBreak : null,
-    currentMode === "Long Break" ? settings.longBreak : null,
-  ]);
-
-  const getCurrentModeMinutes = () => {
-    switch (currentMode) {
-      case "Short Break":
-        return settings.shortBreak;
-      case "Long Break":
-        return settings.longBreak;
-      case "Focus Time":
-      default:
-        return settings.focusTime;
-    }
-  };
-
-  useEffect(() => {
-    if (sequenceSet.current) {
-      return;
-    }
-    sequenceSet.current = true;
-    changeMode("Focus Time");
-  }, []);
-
-  useEffect(() => {
-    laspe.current += 300;
-    const min = Math.floor(timeLeft / 60000);
-    const sec = String(Math.floor((timeLeft % 60000) / 1000)).padStart(2, "0");
-    document.title = `${min}:${sec} – ${currentMode}`;
-    if (timeLeft === 0 && isRunning) {
-      setIsRunning(false);
-      if (playAlarm) playSound();
-      setTimeout(() => {
-        resetTimer();
-      }, 300);
-    }
-  }, [timeLeft]);
-
-  useEffect(() => {
-    laspe.current = null;
-    clearInterval(timerRef.current);
-    timerRef.current = null;
-    setIsRunning(false);
-    const minutes = getCurrentModeMinutes();
-    setMinutes(minutes);
-    setTimeLeft(minutes * 60 * 1000);
-    if (settings.autoStart) {
-      setIsRunning(true);
-    }
-
-    if (currentMode === "Long Break") focusDone.current = 0;
-    setRoundsDone(focusDone.current);
-    onModeChange?.(currentMode);
-  }, [currentMode]);
-
-  useEffect(() => {
-    if (!isRunning) return;
-
-    const duration = getCurrentModeMinutes() * 60 * 1000;
-    startTimeRef.current = Date.now() - (duration - timeLeft);
-    timerRef.current = setInterval(() => {
-      const elapsed = Date.now() - startTimeRef.current;
-      const totalDuration = getCurrentModeMinutes() * 60 * 1000;
-      const remaining = Math.max(totalDuration - elapsed, 0);
-      setTimeLeft(remaining);
-    }, 100);
-
-    return () => clearInterval(timerRef.current);
-  }, [isRunning]);
-
-  const getNextMode = () => {
-    if (currentMode === "Focus Time") focusDone.current++;
-
-    if (focusDone.current >= settings.focusBeforeLong) {
-      return "Long Break";
-    }
-    return currentMode === "Focus Time" ? "Short Break" : "Focus Time";
-  };
-
-  const resetTimer = () => {
-    laspe.current = null;
-    const next = getNextMode();
-    if (next === "Long Break") focusDone.current = 0;
-    setCurrentMode(next);
-  };
-
-  const pauseTimer = () => {
-    clearInterval(timerRef.current);
-    setIsRunning(false);
-  };
-
-  const continueTimer = () => {
-    const duration = getCurrentModeMinutes() * 60 * 1000;
-    startTimeRef.current = Date.now() - (duration - timeLeft);
-    setIsRunning(true);
-  };
+  const isRunning = round.startedAt !== null;
+  const elapsed =
+    round.banked + (isRunning ? Math.max(0, now - round.startedAt) : 0);
+  const duration = minutesFor(round.mode, settings) * 60 * 1000;
+  const timeLeft = Math.max(0, duration - elapsed);
 
   const [playSound] = useSound("/alarm1.mp3", {
     volume: 1,
   });
 
-  const changeMode = (newMode) => {
-    setCurrentMode(newMode);
-  };
+  useEffect(() => {
+    const saved = readSaved();
+    if (saved) setRound(saved);
+    setNow(Date.now());
+    setLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    if (!loaded) return;
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(round));
+    } catch {}
+  }, [round, loaded]);
+
+  useEffect(() => {
+    if (!isRunning) return;
+    setNow(Date.now());
+    const id = setInterval(() => setNow(Date.now()), 250);
+    return () => clearInterval(id);
+  }, [isRunning]);
+
+  useEffect(() => {
+    onModeChange?.(round.mode);
+  }, [round.mode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const minutes = Math.floor(timeLeft / 60000);
   const seconds = Math.floor((timeLeft % 60000) / 1000)
     .toString()
     .padStart(2, "0");
 
-  const modes = ["Focus Time", "Short Break", "Long Break"];
+  useEffect(() => {
+    document.title = `${minutes}:${seconds} – ${round.mode}`;
+  }, [minutes, seconds, round.mode]);
+
+  const startRound = (mode, focusDone) => {
+    setRound(freshRound(mode, focusDone, settings.autoStart));
+  };
+
+  // Round over: move on to the next mode
+  useEffect(() => {
+    if (!loaded || !ready || !isRunning || timeLeft > 0) return;
+    if (elapsed - duration < ALARM_GRACE) playSound();
+
+    let focusDone = round.focusDone;
+    if (round.mode === "Focus Time") focusDone++;
+    let next = round.mode === "Focus Time" ? "Short Break" : "Focus Time";
+    if (focusDone >= settings.focusBeforeLong) {
+      next = "Long Break";
+      focusDone = 0;
+    }
+    startRound(next, focusDone);
+  }, [timeLeft, isRunning, loaded, ready]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const pauseTimer = () => {
+    setRound((r) =>
+      r.startedAt === null
+        ? r
+        : { ...r, banked: r.banked + (Date.now() - r.startedAt), startedAt: null }
+    );
+  };
+
+  const continueTimer = () => {
+    const at = Date.now();
+    setNow(at);
+    setRound((r) => (r.startedAt === null ? { ...r, startedAt: at } : r));
+  };
+
+  const changeMode = (newMode) => {
+    if (newMode === round.mode) return;
+    startRound(newMode, newMode === "Long Break" ? 0 : round.focusDone);
+  };
+
   const totalRounds = Math.min(Math.max(settings.focusBeforeLong || 1, 1), 12);
   const filledRounds =
-    currentMode === "Long Break"
+    round.mode === "Long Break"
       ? totalRounds
-      : Math.min(roundsDone, totalRounds);
+      : Math.min(round.focusDone, totalRounds);
   const clock = `${minutes}:${seconds}`;
   const digits = clock.split("").map((ch, i) => (
     <span key={i} className={ch === ":" ? "clock-colon" : "clock-digit"}>
@@ -164,16 +142,17 @@ const Timer = (props) => {
       <div
         role="tablist"
         aria-label="Timer mode"
+        data-tour="modes"
         className="sticker flex rounded-full bg-shell p-1 text-sm md:text-base font-semibold"
       >
-        {modes.map((mode) => (
+        {MODES.map((mode) => (
           <button
             key={mode}
             role="tab"
-            aria-selected={currentMode === mode}
+            aria-selected={round.mode === mode}
             onClick={() => changeMode(mode)}
             className={`px-3 md:px-5 py-1.5 rounded-full cursor-pointer transition-colors ${
-              currentMode === mode
+              round.mode === mode
                 ? "bg-ink text-shell"
                 : "text-ink/70 hover:text-ink hover:bg-straw"
             }`}
@@ -194,6 +173,7 @@ const Timer = (props) => {
 
       <div
         className="flex items-center gap-2 pb-6"
+        data-tour="rounds"
         aria-label={`${filledRounds} of ${totalRounds} focus sessions done before the long break`}
       >
         {Array.from({ length: totalRounds }).map((_, i) => (
@@ -210,11 +190,12 @@ const Timer = (props) => {
 
       <button
         onClick={!isRunning ? continueTimer : pauseTimer}
+        data-tour="start"
         className={`sticker-btn min-w-48 px-10 py-3 rounded-full text-xl font-bold cursor-pointer ${
           isRunning ? "bg-shell text-ink" : "bg-beak text-ink"
         }`}
       >
-        {isRunning ? "Pause" : !timerRef.current ? "Start" : "Continue"}
+        {isRunning ? "Pause" : round.banked > 0 ? "Continue" : "Start"}
       </button>
     </div>
   );

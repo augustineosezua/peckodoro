@@ -14,6 +14,13 @@
   --ground-short: #cfe9df;
   --ground-long: #ddd6f3;
   --ground: var(--ground-focus);
+
+  /* Panels and bars: a shade deeper than the page, so they read as trays
+     sunk into it (and follow it into mint/lavender on breaks) */
+  --surface: color-mix(in srgb, var(--ground) 93%, var(--ink));
+
+  /* Shared bottom-bar height: the music bar and the chat composer line up on it */
+  --dock-h: 5.5rem;
 }
 
 [data-mode="Short Break"] {
@@ -30,6 +37,7 @@
   --color-shell: var(--shell);
   --color-straw: var(--straw);
   --color-ground: var(--ground);
+  --color-surface: var(--surface);
   --color-background: var(--ground);
   --color-foreground: var(--ink);
   --font-sans: var(--font-figtree);
@@ -84,11 +92,15 @@ body {
 }
 
 /* Chat composer: the focus ring sits on the box, not the bare textarea */
-.composer:focus-within {
-  outline: 3px solid var(--beak);
-  outline-offset: 2px;
+.composer {
+  transition: border-color 150ms ease;
 }
-.composer textarea:focus-visible {
+.composer:focus-within {
+  border-color: var(--ink);
+}
+/* Text fields show focus by darkening their own border (focus:border-ink), not the ring */
+input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):focus-visible,
+textarea:focus-visible {
   outline: none;
 }
 

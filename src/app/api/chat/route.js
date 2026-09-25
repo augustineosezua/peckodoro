@@ -2,9 +2,19 @@ import { prisma } from "@/app/lib/prisma";
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+// OpenRouter speaks the OpenAI API, so the OpenAI SDK works with a different base URL
+const openrouter = new OpenAI({
+  baseURL: "https://openrouter.ai/api/v1",
+  apiKey: process.env.OPENROUTER_API_KEY,
+  defaultHeaders: {
+    // Optional: shows the app by name in OpenRouter's usage dashboard
+    "HTTP-Referer": process.env.BASE_URL || "https://peckodoro.vercel.app",
+    "X-Title": "Peckodoro",
+  },
 });
+
+// Any model ID from https://openrouter.ai/models
+const MODEL = process.env.OPENROUTER_MODEL || "google/gemini-2.5-flash";
 
 export async function POST(request) {
   const { conversationId, message, userId } = await request.json();
@@ -55,12 +65,23 @@ export async function POST(request) {
     })),
   ];
 
-  const completion = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages,
-  });
+  let reply;
+  try {
+    const completion = await openrouter.chat.completions.create({
+      model: MODEL,
+      messages,
+    });
+    reply = completion.choices?.[0]?.message?.content;
+  } catch (err) {
+    console.error("OpenRouter request failed:", err?.status, err?.message);
+  }
 
-  const reply = completion.choices[0].message.content;
+  if (!reply) {
+    return NextResponse.json(
+      { error: "The assistant didn't answer", conversationId: convoId },
+      { status: 502 }
+    );
+  }
 
   // Save the assistant's response
   const savedMessage = await prisma.message.create({
