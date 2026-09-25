@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import useSound from "use-sound";
 
 const Timer = (props) => {
-  const { settings, onModeChange, compact = false, onExpand } = props;
+  const { settings, onModeChange } = props;
   const focusDone = useRef(0);
   const sequenceSet = useRef(false);
   const [currentMode, setCurrentMode] = useState("Focus Time"); // default to focus
@@ -159,53 +159,6 @@ const Timer = (props) => {
     </span>
   ));
 
-  // Compact pill that lives in the header while the chat has the stage.
-  // Same component instance as the full timer, so a running session never resets.
-  if (compact) {
-    return (
-      <div className="pop-in flex items-center gap-2 bg-shell border-2 border-ink rounded-full pl-4 pr-1.5 py-1.5">
-        <button
-          type="button"
-          onClick={onExpand}
-          title="Show the full timer"
-          className="flex items-baseline gap-2 cursor-pointer"
-        >
-          <span className="hidden sm:inline text-xs font-semibold text-ink/60">
-            {currentMode}
-          </span>
-          <span
-            role="timer"
-            aria-label={`${currentMode}: ${minutes} minutes ${seconds} seconds left`}
-            className="font-[family-name:var(--font-display)] font-extrabold text-2xl leading-none"
-          >
-            {digits}
-          </span>
-        </button>
-        <button
-          type="button"
-          onClick={!isRunning ? continueTimer : pauseTimer}
-          aria-label={
-            isRunning ? "Pause" : !timerRef.current ? "Start" : "Continue"
-          }
-          className={`w-9 h-9 rounded-full border-2 border-ink flex items-center justify-center cursor-pointer shrink-0 ${
-            isRunning ? "bg-shell" : "bg-beak"
-          }`}
-        >
-          {isRunning ? (
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-              <rect x="5" y="4" width="5" height="16" rx="1.5" />
-              <rect x="14" y="4" width="5" height="16" rx="1.5" />
-            </svg>
-          ) : (
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5Z" />
-            </svg>
-          )}
-        </button>
-      </div>
-    );
-  }
-
   return (
     <div className="w-full flex-col flex justify-center items-center pt-6 md:pt-10 grow">
       <div
@@ -230,8 +183,9 @@ const Timer = (props) => {
         ))}
       </div>
 
+      {/* Sized so the clock still fits when the assistant dock is open */}
       <div
-        className="font-[family-name:var(--font-display)] font-extrabold leading-none tracking-tight cursor-default text-[5.5rem] sm:text-[8rem] md:text-[11rem] pt-4 pb-2 select-none"
+        className="font-[family-name:var(--font-display)] font-extrabold leading-none tracking-tight cursor-default text-[4.5rem] sm:text-[7rem] md:text-[8.5rem] xl:text-[10.5rem] pt-4 pb-2 select-none"
         role="timer"
         aria-label={`${minutes} minutes ${seconds} seconds left`}
       >

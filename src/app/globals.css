@@ -105,7 +105,7 @@ body {
   transform: translateY(-0.06em);
 }
 
-/* The one orchestrated moment: timer tucks into the header */
+/* The one orchestrated moment: the assistant dock opening */
 @keyframes pop-in {
   from {
     opacity: 0;

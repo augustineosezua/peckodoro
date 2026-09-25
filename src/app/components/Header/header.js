@@ -4,12 +4,7 @@ import { signIn, signOut, useSession } from "@/app/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-const Header = ({
-  showSettings,
-  setShowSettings,
-  session,
-  compact = false,
-}) => {
+const Header = ({ showSettings, setShowSettings, session }) => {
   const router = useRouter();
   const handleClick = () => {
     if (session) {
@@ -35,15 +30,11 @@ const Header = ({
           className="rounded-full border-2 border-ink"
           priority
         />
-        <span
-          className={`font-[family-name:var(--font-display)] font-extrabold text-2xl tracking-tight ${
-            compact ? "hidden lg:inline" : ""
-          }`}
-        >
+        <span className="font-[family-name:var(--font-display)] font-extrabold text-2xl tracking-tight">
           Peckodoro
         </span>
         <a
-          className={`${compact ? "hidden xl:inline" : "hidden sm:inline"} text-xs font-semibold text-ink/60 hover:text-ink underline-offset-2 hover:underline`}
+          className="hidden sm:inline text-xs font-semibold text-ink/60 hover:text-ink underline-offset-2 hover:underline"
           href="/versions/"
           target="_blank"
           title="See what's new"

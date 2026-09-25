@@ -43,9 +43,6 @@ export default function Home() {
   const [spotifyExists, setSpotifyExists] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [mode, setMode] = useState("Focus Time");
-  // While a conversation is going, the chat takes the stage and the timer tucks into the header
-  const [chatFocus, setChatFocus] = useState(false);
-  const chatStage = Boolean(session) && chatFocus;
 
   // The page ground tints with the timer mode (see globals.css)
   useEffect(() => {
@@ -167,52 +164,42 @@ export default function Home() {
           showSettings={showSettings}
           setShowSettings={setShowSettings}
           session={session}
-          compact={chatStage}
-        />
-      </div>
-      <div
-        className={
-          chatStage
-            ? "absolute top-0 z-20 h-[76px] flex items-center left-[72px] md:left-1/2 md:-translate-x-1/2"
-            : "w-full shrink-0"
-        }
-      >
-        <Timer
-          settings={settings}
-          onModeChange={setMode}
-          compact={chatStage}
-          onExpand={() => setChatFocus(false)}
         />
       </div>
 
-      {session ? (
-        <ChatBot
-          session={session}
-          focused={chatStage}
-          onFocusChange={setChatFocus}
-        />
-      ) : (
-        <div className="w-full flex flex-1 justify-center items-start px-4 md:px-8 pt-10">
-          <p className="text-sm text-ink/70 max-w-xs text-center">
-            <Link
-              href="/login"
-              className="font-semibold text-ink underline underline-offset-2"
-            >
-              Log in
-            </Link>{" "}
-            to save your timer settings and ask the study assistant questions.
-          </p>
-        </div>
-      )}
+      {/* The timer keeps the stage; the assistant docks to its right */}
+      <div className="flex w-full flex-1 min-h-0">
+        <main className="flex-1 flex flex-col min-w-0 min-h-0 overflow-y-auto">
+          {/* Room below the timer for the task list and streaks */}
+          <Timer settings={settings} onModeChange={setMode} />
 
-      {/* Music dock sits in the page flow so nothing has to pad around it */}
-      {spotifyExists ? (
-        <SpotifyPlayer mode={mode} />
-      ) : (
-        <p className="w-full shrink-0 pb-4 pt-2 text-center text-xs text-ink/60">
-          VIP members can control Spotify from here.
-        </p>
-      )}
+          {session ? null : (
+            <div className="w-full flex justify-center px-4 md:px-8 pt-6 shrink-0">
+              <p className="text-sm text-ink/70 max-w-xs text-center">
+                <Link
+                  href="/login"
+                  className="font-semibold text-ink underline underline-offset-2"
+                >
+                  Log in
+                </Link>{" "}
+                to save your timer settings and ask the study assistant
+                questions.
+              </p>
+            </div>
+          )}
+
+          {/* Music dock sits in the page flow so nothing has to pad around it */}
+          {spotifyExists ? (
+            <SpotifyPlayer mode={mode} />
+          ) : (
+            <p className="w-full shrink-0 pb-4 pt-2 text-center text-xs text-ink/60">
+              VIP members can control Spotify from here.
+            </p>
+          )}
+        </main>
+
+        {session ? <ChatBot session={session} /> : null}
+      </div>
 
       {showSettings ? (
         <Settings
