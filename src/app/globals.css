@@ -118,6 +118,13 @@ textarea:focus-visible {
 }
 
 /* The one orchestrated moment: the assistant dock opening */
+/* Modal backdrop. Literal colour: ::backdrop doesn't inherit custom
+   properties in every browser still in use. */
+.settings-dialog::backdrop {
+  background: rgb(43 30 20 / 0.5);
+  backdrop-filter: blur(3px);
+}
+
 @keyframes pop-in {
   from {
     opacity: 0;
@@ -132,7 +139,39 @@ textarea:focus-visible {
   animation: pop-in 220ms cubic-bezier(0.2, 0.9, 0.3, 1.2);
 }
 
+/* Loading screen: the chick bobs while the eggs fill in turn */
+@keyframes loading-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+@keyframes loading-egg {
+  0%,
+  100% {
+    background-color: color-mix(in srgb, var(--ink) 20%, transparent);
+    transform: scale(1);
+  }
+  40% {
+    background-color: var(--yolk);
+    transform: scale(1.2);
+  }
+}
+.loading-bob {
+  animation: loading-bob 1.4s ease-in-out infinite;
+}
+.loading-egg {
+  animation: loading-egg 1.2s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .loading-bob,
+  .loading-egg {
+    animation: none;
+  }
   .pop-in {
     animation: none;
   }

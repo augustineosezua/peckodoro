@@ -39,7 +39,7 @@ const Header = ({ showSettings, setShowSettings, session }) => {
           target="_blank"
           title="See what's new"
         >
-          v0.2.5
+          v2-B
         </a>
       </div>
       <nav className="flex gap-2 md:gap-3">

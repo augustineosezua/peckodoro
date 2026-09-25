@@ -6,7 +6,7 @@ const GUTTER = 16;
 const GAP = 12;
 
 // Steps point at elements marked with data-tour; a step whose element isn't on
-// screen (the side rail on small screens, music for non-VIPs) is skipped
+// screen (like the side rail on small screens) is skipped
 const STEPS = [
   {
     title: "Welcome to Peckodoro",
@@ -40,7 +40,7 @@ const STEPS = [
   {
     target: "music",
     title: "Music for focusing",
-    body: "Browse Spotify and control playback. It can pause your music during breaks.",
+    body: "Play music from Apple Music and control it from the bar at the bottom. Settings can pause it during breaks.",
   },
 ];
 

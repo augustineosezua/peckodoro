@@ -5,6 +5,12 @@ import Link from "next/link";
 
 const versionHistory = [
   {
+    version: "v2-B",
+    date: "2026-09-25",
+    description:
+      "Apple Music for everyone! Anyone signed in can now search Apple Music, play their library playlists and recently played songs, see what's up next, and control playback from the music bar. Your Apple Music sign-in is saved to your Peckodoro account, so it follows you and never passes to someone else using the same browser, and you can disconnect it any time in Settings. VIP members can pick Apple Music or Spotify in Settings. Settings has been redesigned with clearer sections, units inside each field, and \"Pause during breaks\" now lives there. The site loads faster and opens already signed in, with a new loading screen for the rare times it has to wait. Also fixed: the chat button covering the music controls on phones, and the Apple Music icon sometimes going blank. We also removed analytics tracking.",
+  },
+  {
     version: "v2.5",
     date: "2025-08-27",
     description:

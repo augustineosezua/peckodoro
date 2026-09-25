@@ -1,12 +1,11 @@
 "use client";
-import { SpotifyMark } from "./SpotifyPlayer/MusicBrowser";
 
 const CHAT =
   "M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z";
 
 // Wide screens only: a slim strip on the right edge that switches the side
 // column between the study assistant and the music panel.
-export default function SideRail({ panel, onChat, onMusic, chatUnread }) {
+export default function SideRail({ panel, onChat, onMusic, musicIcon, chatUnread }) {
   const button = (active) =>
     `sticker-btn w-10 h-10 rounded-xl flex items-center justify-center cursor-pointer relative ${
       active ? "bg-yolk" : "bg-shell"
@@ -50,7 +49,7 @@ export default function SideRail({ panel, onChat, onMusic, chatUnread }) {
           className={button(panel === "music")}
           data-tour="music"
         >
-          <SpotifyMark size={20} />
+          {musicIcon}
         </button>
       ) : null}
     </nav>

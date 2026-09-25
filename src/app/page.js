@@ -1,311 +1,42 @@
-"use client";
-import Image from "next/image";
-import Link from "next/link";
-import Header from "./components/Header/header";
-import Timer from "./components/timer/timer";
-import { useState, useEffect, useRef, useCallback } from "react";
-import Settings from "./components/settings/settings";
-import {
-  useSession,
-  signIn, // alias of authClient.signIn
-  signOut,
-  authClient, // available but not used here
-} from "@/app/lib/auth-client";
-import { Toaster, toast } from "sonner";
-import SpotifyPlayer from "./components/SpotifyPlayer/SpotifyPlayer";
-import ChatBot from "./components/ChatBot/ChatBot";
-import SideRail from "./components/SideRail";
-import Tutorial, { hasSeenTutorial } from "./components/Tutorial";
+import { headers } from "next/headers";
+import { auth } from "@/app/lib/auth";
+import { prisma } from "@/app/lib/prisma";
+import { isAdminEmail } from "@/app/lib/admins";
+import Home from "./Home";
 
-const DEFAULT_SETTINGS = {
-  focusTime: 25,
-  shortBreak: 5,
-  longBreak: 10,
-  focusBeforeLong: 3,
-  autoStart: false,
-};
-// Last settings loaded from the account, so a reload shows the right clock straight away
-const SETTINGS_KEY = "peckodoro-settings";
+// Work out who's visiting while the page renders, so it arrives already
+// signed in (or out) with their timer settings, not after a chain of requests.
+async function loadVisitor() {
+  const found = await auth.api.getSession({ headers: await headers() });
+  if (!found?.user) return { session: null, settings: null, isAdmin: false, spotifyLinked: false };
 
-function shallowEqual(obj1, obj2) {
-  const keysA = Object.keys(obj1);
-  const keysB = Object.keys(obj2);
+  const { id, email, name, image } = found.user;
+  const isAdmin = isAdminEmail(email);
+  const [settings, spotify] = await Promise.all([
+    prisma.settings.findUnique({ where: { userId: id } }),
+    isAdmin
+      ? prisma.account.findFirst({
+          where: { userId: id, providerId: "spotify" },
+          select: { refreshToken: true },
+        })
+      : null,
+  ]);
+  if (settings) delete settings.id;
 
-  if (keysA.length !== keysB.length) return false;
-
-  for (let key of keysA) {
-    if (obj1[key] !== obj2[key]) return false;
-  }
-  return true;
+  return {
+    // Only what the page uses; the session token stays in its httpOnly cookie
+    session: { user: { id, email, name, image } },
+    settings,
+    isAdmin,
+    spotifyLinked: Boolean(spotify?.refreshToken),
+  };
 }
 
-export default function Home() {
-  const { data: session, isPending } = useSession();
-  //authClient.refreshToken()
-
-  const ogSettings = useRef(null);
-  const [showSettings, setShowSettings] = useState(false);
-  const [settings, setSettings] = useState(DEFAULT_SETTINGS);
-  // False until the account's settings have loaded (or we know there's no account)
-  const [settingsReady, setSettingsReady] = useState(false);
-  const [showTutorial, setShowTutorial] = useState(false);
-  const [spotifyExists, setSpotifyExists] = useState(null);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [mode, setMode] = useState("Focus Time");
-  // The side column shows one panel at a time: "chat", "music" or nothing.
-  // Closing music hands the column back to whatever was there before.
-  const [panel, setPanel] = useState(null);
-  const beforeMusic = useRef(null);
-  const [chatUnread, setChatUnread] = useState(false);
-
-  // The assistant starts open where there's room for it beside the timer
-  useEffect(() => {
-    if (window.matchMedia("(min-width: 1024px)").matches) setPanel("chat");
-  }, []);
-
-  const setChatOpen = useCallback((open) => {
-    setPanel(open ? "chat" : null);
-    if (open) setChatUnread(false);
-  }, []);
-
-  const setMusicOpen = useCallback((value) => {
-    setPanel((current) => {
-      const isOpen = current === "music";
-      const next = typeof value === "function" ? value(isOpen) : value;
-      if (next && !isOpen) {
-        beforeMusic.current = current;
-        return "music";
-      }
-      if (!next && isOpen) return beforeMusic.current;
-      return current;
-    });
-  }, []);
-  const musicOpen = panel === "music";
-
-  useEffect(() => {
-    try {
-      const cached = JSON.parse(localStorage.getItem(SETTINGS_KEY));
-      if (cached) setSettings(cached);
-    } catch {}
-  }, []);
-
-  // First visit after signing in: walk through the page once it's fully laid out
-  useEffect(() => {
-    if (session && settingsReady && !hasSeenTutorial()) setShowTutorial(true);
-    if (!session) setShowTutorial(false);
-  }, [session, settingsReady]);
-
-  // The page ground tints with the timer mode (see globals.css)
-  useEffect(() => {
-    document.documentElement.dataset.mode = mode;
-  }, [mode]);
-
-  useEffect(() => {
-    if (isPending) return;
-    toast.loading("Loading...", {
-      id: "loading",
-    });
-    const checkSession = async () => {
-      if (session) {
-        toast.loading("Loading Settings...", {
-          id: "loading",
-        });
-        const response = await fetch(`/api/settings/${session.user.id}`);
-        if (response.ok) {
-          const savedSettings = await response.json();
-          if (!savedSettings) {
-            toast.error("Error Fetching Your Settings", {
-              id: "loading",
-              position: "bottom-right",
-            });
-            setSettingsReady(true);
-            return;
-          }
-          delete savedSettings.id;
-          setSettings(savedSettings);
-          ogSettings.current = savedSettings;
-          try {
-            localStorage.setItem(SETTINGS_KEY, JSON.stringify(savedSettings));
-          } catch {}
-          toast.dismiss("loading");
-          try {
-            await spotifyHandler();
-          } finally {
-            setSettingsReady(true);
-          }
-        } else {
-          toast.error("Failed to load settings.", {
-            id: "loading",
-            position: "bottom-right",
-          });
-          setSettingsReady(true);
-          return;
-        }
-      } else {
-        toast.dismiss("signing-out");
-        toast.dismiss("loading");
-        setSettings(DEFAULT_SETTINGS);
-        try {
-          localStorage.removeItem(SETTINGS_KEY);
-        } catch {}
-        setSettingsReady(true);
-        // Unmounting the player disconnects it from Spotify
-        setSpotifyExists(false);
-        setMusicOpen(false);
-        setIsAdmin(false);
-        ogSettings.current = null;
-        return;
-      }
-    };
-    checkSession();
-  }, [session, isPending]);
-
-  useEffect(() => {
-    const updateSettings = async () => {
-      //prettier-ignore
-      if (!ogSettings.current || shallowEqual(ogSettings.current, settings)) return;
-      toast.loading("Saving new Settings...", {
-        id: "loading-settings",
-        position: "bottom-right",
-      });
-      if (session) {
-        const res = await fetch(`/api/settings/${session.user.id}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(settings),
-        });
-        const json = await res.json();
-        if (json.message != "settings updated") {
-          toast.error("Error updating your account settings", {
-            id: "loading-settings",
-            position: "bottom-right",
-          });
-        } else {
-          ogSettings.current = settings;
-          try {
-            localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-          } catch {}
-          toast.success("Settings Updated", {
-            id: "loading-settings",
-            position: "bottom-right",
-          });
-        }
-      }
-    };
-    updateSettings();
-  }, [settings]);
-
-  const checkAdmin = async () => {
-    if (!session) return;
-    const res = await fetch("/api/check-admin", { method: "POST" });
-    const json = await res.json();
-    return json.isAdmin;
-  };
-
-  const spotifyHandler = async () => {
-    const admin = await checkAdmin();
-    setIsAdmin(admin);
-    if (session.user && admin) {
-      const res = await fetch("/api/spotify", { method: "POST" });
-      if (!res.ok) {
-        return;
-      }
-
-      const json = await res.json();
-      if (json.linked) {
-        setSpotifyExists(true);
-      }
-    }
-  };
-
-  return (
-    <div className="main relative flex flex-col h-screen overflow-hidden text-ink">
-      <div className="flex w-full shrink-0">
-        <Header
-          showSettings={showSettings}
-          setShowSettings={setShowSettings}
-          session={session}
-        />
-      </div>
-
-      {/* The timer keeps the stage; the assistant docks to its right */}
-      <div className="flex w-full flex-1 min-h-0">
-        <main className="flex-1 flex flex-col min-w-0 min-h-0 overflow-y-auto">
-          {/* Room below the timer for the task list and streaks */}
-          <Timer
-            settings={settings}
-            ready={settingsReady}
-            onModeChange={setMode}
-          />
-
-          {session ? null : (
-            <div className="w-full flex justify-center px-4 md:px-8 pt-6 shrink-0">
-              <p className="text-sm text-ink/70 max-w-xs text-center">
-                <Link
-                  href="/login"
-                  className="font-semibold text-ink underline underline-offset-2"
-                >
-                  Log in
-                </Link>{" "}
-                to save your timer settings and ask the study assistant
-                questions.
-              </p>
-            </div>
-          )}
-
-          {/* Music dock sits in the page flow so nothing has to pad around it */}
-          {spotifyExists ? (
-            <SpotifyPlayer
-              mode={mode}
-              browsing={musicOpen}
-              setBrowsing={setMusicOpen}
-            />
-          ) : (
-            <p className="w-full shrink-0 pb-4 pt-2 text-center text-xs text-ink/60">
-              VIP members can control Spotify from here.
-            </p>
-          )}
-        </main>
-
-        {/* Hidden, not unmounted, so the conversation is still there after browsing music */}
-        {session ? (
-          <div className={musicOpen ? "hidden" : "contents"}>
-            <ChatBot
-              session={session}
-              open={panel === "chat"}
-              setOpen={setChatOpen}
-              unread={chatUnread}
-              setUnread={setChatUnread}
-            />
-          </div>
-        ) : null}
-        <div id="side-panel" className="contents" />
-
-        {session ? (
-          <SideRail
-            panel={panel}
-            onChat={() => setChatOpen(panel !== "chat")}
-            onMusic={spotifyExists ? () => setMusicOpen((o) => !o) : null}
-            chatUnread={chatUnread}
-          />
-        ) : null}
-      </div>
-
-      {showTutorial ? (
-        <Tutorial onClose={() => setShowTutorial(false)} />
-      ) : null}
-
-      {showSettings ? (
-        <Settings
-          setShowSettings={setShowSettings}
-          settings={settings}
-          setSettings={setSettings}
-          session={session}
-          isAdmin={isAdmin}
-        />
-      ) : null}
-    </div>
-  );
+export default async function Page() {
+  // If this fails, the page falls back to checking in the browser
+  const initial = await loadVisitor().catch((err) => {
+    console.error("Couldn't preload the visitor", err);
+    return null;
+  });
+  return <Home initial={initial} />;
 }

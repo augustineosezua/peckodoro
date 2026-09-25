@@ -161,7 +161,7 @@ const ChatBot = ({ session, open, setOpen, unread, setUnread }) => {
           type="button"
           onClick={openDock}
           aria-label="Open the study assistant"
-          className="lg:hidden fixed bottom-5 right-5 z-30 sticker-btn bg-yolk w-14 h-14 rounded-full flex items-center justify-center cursor-pointer"
+          className="lg:hidden fixed bottom-[calc(var(--dock-h)+1rem)] right-5 z-30 sticker-btn bg-yolk w-14 h-14 rounded-full flex items-center justify-center cursor-pointer"
         >
           {icon(CHAT, 22)}
           {unread && (

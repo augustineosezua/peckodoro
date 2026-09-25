@@ -1,12 +1,15 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
-
-const QUICK_SEARCHES = ["Lo-fi beats", "Classical focus", "Rain sounds", "Deep focus", "Jazz for study"];
-
-export const msToClock = (ms = 0) => {
-  const total = Math.max(0, Math.floor(ms / 1000));
-  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
-};
+import { useEffect, useRef, useState } from "react";
+import {
+  BrowserShell,
+  LoadMore,
+  Note,
+  QUICK_SEARCHES,
+  Reconnect,
+  Row,
+  Section,
+  msToClock,
+} from "../Music/BrowserParts";
 
 const smallestImage = (images) =>
   images?.length ? images[images.length - 1].url || images[0].url : null;
@@ -49,132 +52,9 @@ const timeAgo = (iso) => {
 const LIBRARY_SCOPES = ["user-library-read"];
 const RECENT_SCOPES = ["user-read-recently-played"];
 
-function Reconnect({ onReconnect, children }) {
-  return (
-    <div className="mx-2 mt-3 p-3 rounded-xl bg-straw text-sm flex items-center justify-between gap-3">
-      <span>{children}</span>
-      <button
-        type="button"
-        onClick={onReconnect}
-        className="sticker-btn bg-yolk px-3 py-1.5 rounded-lg font-semibold cursor-pointer shrink-0"
-      >
-        Reconnect
-      </button>
-    </div>
-  );
-}
-
-function Row({ image, tile, title, subtitle, meta, active, onClick, onQueue, round = false }) {
-  const Tag = onClick ? "button" : "div";
-  return (
-    <div
-      className={`group flex items-center rounded-xl transition-colors ${
-        active ? "bg-yolk" : onClick ? "hover:bg-ink/10" : ""
-      }`}
-    >
-    <Tag
-      {...(onClick ? { type: "button", onClick } : {})}
-      className={`min-w-0 flex-1 flex items-center gap-3 px-2 py-1.5 text-left ${
-        onClick ? "cursor-pointer" : ""
-      }`}
-    >
-      {tile ? (
-        tile
-      ) : image ? (
-        <img
-          src={image}
-          alt=""
-          loading="lazy"
-          className={`w-11 h-11 object-cover border-2 border-ink/15 shrink-0 ${
-            round ? "rounded-full" : "rounded-lg"
-          }`}
-        />
-      ) : (
-        <span className="w-11 h-11 rounded-lg bg-straw shrink-0" />
-      )}
-      <span className="flex flex-col min-w-0 flex-1">
-        <span className="font-semibold truncate">{title}</span>
-        {subtitle ? (
-          <span className="text-sm text-ink/60 truncate">{subtitle}</span>
-        ) : null}
-      </span>
-      {meta ? (
-        <span className="text-sm text-ink/50 tabular-nums shrink-0">{meta}</span>
-      ) : null}
-    </Tag>
-      {onQueue ? (
-        <button
-          type="button"
-          onClick={onQueue}
-          aria-label={`Add ${title} to queue`}
-          title="Add to queue"
-          className="mr-1 w-8 h-8 shrink-0 rounded-full flex items-center justify-center cursor-pointer hover:bg-ink/10 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:focus-visible:opacity-100"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-          </svg>
-        </button>
-      ) : null}
-    </div>
-  );
-}
-
-// Fetches the next page when scrolled into view; the button covers keyboards and fallbacks
-function LoadMore({ onLoad }) {
-  const ref = useRef(null);
-  const busyRef = useRef(false);
-  const [busy, setBusy] = useState(false);
-
-  const load = useCallback(async () => {
-    if (busyRef.current) return;
-    busyRef.current = true;
-    setBusy(true);
-    try {
-      await onLoad();
-    } finally {
-      busyRef.current = false;
-      setBusy(false);
-    }
-  }, [onLoad]);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const io = new IntersectionObserver(([entry]) => entry.isIntersecting && load(), {
-      rootMargin: "200px",
-    });
-    io.observe(el);
-    return () => io.disconnect();
-  }, [load]);
-
-  return (
-    <div ref={ref} className="flex justify-center py-3">
-      <button
-        type="button"
-        onClick={load}
-        disabled={busy}
-        className="px-4 py-1.5 rounded-full border-2 border-ink/20 hover:border-ink text-sm font-semibold cursor-pointer disabled:opacity-60"
-      >
-        {busy ? "Loading…" : "Load more"}
-      </button>
-    </div>
-  );
-}
-
-const Section = ({ title, children }) => (
-  <section className="pt-4">
-    <h3 className="font-bold px-2 pb-1">{title}</h3>
-    <div className="flex flex-col">{children}</div>
-  </section>
-);
-
-const Note = ({ children }) => (
-  <p className="text-sm text-ink/60 px-2 py-6 text-center">{children}</p>
-);
-
 const artistNames = (artists) => (artists || []).map((a) => a.name).join(", ");
 
-export default function MusicBrowser({ spotify, onClose, pauseOnBreaks, setPauseOnBreaks, notice }) {
+export default function MusicBrowser({ spotify, onClose, notice }) {
   const { api, playContext, playTracks, playback, addToQueue, queueVersion, missingScopes, reconnect } =
     spotify;
   const lacks = (scopes) => scopes.some((sc) => missingScopes.includes(sc));
@@ -198,11 +78,8 @@ export default function MusicBrowser({ spotify, onClose, pauseOnBreaks, setPause
   const inputRef = useRef(null);
 
   useEffect(() => {
-    const onKey = (e) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", onKey);
     inputRef.current?.focus();
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, []);
 
   const search = async (text) => {
     const q = text.trim();
@@ -354,367 +231,301 @@ export default function MusicBrowser({ spotify, onClose, pauseOnBreaks, setPause
   ];
 
   return (
-    // Wide screens: takes the study assistant's column. Narrow: a sheet above the music bar.
-    <div
-      className="fixed inset-x-0 top-0 bottom-[var(--dock-h)] z-[60] lg:static lg:z-auto lg:flex lg:w-[26rem] lg:shrink-0"
-      role="region"
-      aria-label="Music"
+    <BrowserShell
+      onClose={onClose}
+      notice={notice}
+      tabs={tabs}
+      tab={tab}
+      onTab={(id) => {
+        setTab(id);
+        setLoadError(null);
+      }}
+      footer={
+        <span className="flex items-center gap-1.5 text-xs text-ink/55">
+          <SpotifyMark size={14} /> Spotify
+        </span>
+      }
     >
-      <div className="absolute inset-0 bg-ink/25 lg:hidden" onClick={onClose} />
-      <div className="pop-in absolute right-0 top-0 bottom-0 w-full sm:w-[440px] lg:static lg:w-full lg:flex-1 bg-surface border-l-2 border-ink flex flex-col min-h-0">
-        {/* Same header bar as the study assistant, so swapping panels feels like one place */}
-        <div className="flex items-center gap-1 px-3 md:px-6 h-12 border-b-2 border-ink bg-yolk shrink-0">
-          <h2 className="font-[family-name:var(--font-display)] font-bold text-base flex-1 truncate">
-            Music
-          </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close music"
-            title="Close music"
-            className="p-1.5 rounded-lg hover:bg-ink/10 cursor-pointer transition-colors"
+      {loadError ? <Note>{loadError}</Note> : null}
+
+      {tab === "search" ? (
+        <>
+          <form
+            className="px-2 pt-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              search(query);
+            }}
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-            </svg>
-          </button>
-        </div>
+            <input
+              ref={inputRef}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Songs, albums or playlists"
+              aria-label="Search Spotify"
+              className="w-full px-4 py-2.5 rounded-xl bg-white border-2 border-ink/25 focus:border-ink outline-none placeholder-ink/45"
+            />
+          </form>
 
-        {notice ? (
-          <div className="flex-1 flex flex-col items-center justify-center gap-3 px-6 text-center">
-            {notice}
-          </div>
-        ) : (
-          <>
-        <div role="tablist" className="mx-4 mt-3 flex rounded-full border-2 border-ink p-1 text-sm font-semibold shrink-0">
-          {tabs.map(([id, label]) => (
-            <button
-              key={id}
-              role="tab"
-              aria-selected={tab === id}
-              onClick={() => {
-                setTab(id);
-                setLoadError(null);
-              }}
-              className={`flex-1 px-3 py-1.5 rounded-full cursor-pointer transition-colors ${
-                tab === id ? "bg-ink text-shell" : "text-ink/70 hover:text-ink hover:bg-ink/10"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex-1 overflow-y-auto px-2 pb-4 pt-2">
-          {loadError ? <Note>{loadError}</Note> : null}
-
-          {tab === "search" ? (
-            <>
-              <form
-                className="px-2 pt-2"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  search(query);
-                }}
-              >
-                <input
-                  ref={inputRef}
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Songs, albums or playlists"
-                  aria-label="Search Spotify"
-                  className="w-full px-4 py-2.5 rounded-xl bg-white border-2 border-ink/25 focus:border-ink outline-none placeholder-ink/45"
-                />
-              </form>
-
-              {!results && !searching ? (
-                <div className="px-2 pt-4">
-                  <p className="text-sm text-ink/60 pb-2">Try one of these</p>
-                  <div className="flex flex-wrap gap-2">
-                    {QUICK_SEARCHES.map((q) => (
-                      <button
-                        key={q}
-                        type="button"
-                        onClick={() => search(q)}
-                        className="px-3 py-1.5 rounded-full border-2 border-ink/20 hover:border-ink text-sm font-semibold cursor-pointer"
-                      >
-                        {q}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-
-              {searching ? <Note>Searching…</Note> : null}
-
-              {results && !searching ? (
-                tracks.length + foundPlaylists.length + albums.length === 0 ? (
-                  <Note>Nothing matched “{query}”. Try a different search.</Note>
-                ) : (
-                  <>
-                    {tracks.length ? (
-                      <Section title="Songs">
-                        {tracks.map((t) => (
-                          <Row
-                            key={t.id}
-                            image={smallestImage(t.album?.images)}
-                            title={t.name}
-                            subtitle={artistNames(t.artists)}
-                            meta={msToClock(t.duration_ms)}
-                            active={t.uri === currentUri}
-                            onClick={() =>
-                              t.album?.uri
-                                ? playContext(t.album.uri, { startUri: t.uri })
-                                : playTracks([t.uri])
-                            }
-                            onQueue={() => addToQueue(t)}
-                          />
-                        ))}
-                        {results.tracks?.next ? (
-                          <LoadMore onLoad={() => loadMoreSearch("tracks")} />
-                        ) : null}
-                      </Section>
-                    ) : null}
-                    {foundPlaylists.length ? (
-                      <Section title="Playlists">
-                        {foundPlaylists.map((p) => (
-                          <Row
-                            key={p.id}
-                            image={smallestImage(p.images)}
-                            title={p.name}
-                            subtitle={p.owner?.display_name}
-                            onClick={() => playContext(p.uri)}
-                          />
-                        ))}
-                        {results.playlists?.next ? (
-                          <LoadMore onLoad={() => loadMoreSearch("playlists")} />
-                        ) : null}
-                      </Section>
-                    ) : null}
-                    {albums.length ? (
-                      <Section title="Albums">
-                        {albums.map((a) => (
-                          <Row
-                            key={a.id}
-                            image={smallestImage(a.images)}
-                            title={a.name}
-                            subtitle={artistNames(a.artists)}
-                            meta={a.release_date?.slice(0, 4)}
-                            onClick={() => playContext(a.uri)}
-                          />
-                        ))}
-                        {results.albums?.next ? (
-                          <LoadMore onLoad={() => loadMoreSearch("albums")} />
-                        ) : null}
-                      </Section>
-                    ) : null}
-                  </>
-                )
-              ) : null}
-            </>
+          {!results && !searching ? (
+            <div className="px-2 pt-4">
+              <p className="text-sm text-ink/60 pb-2">Try one of these</p>
+              <div className="flex flex-wrap gap-2">
+                {QUICK_SEARCHES.map((q) => (
+                  <button
+                    key={q}
+                    type="button"
+                    onClick={() => search(q)}
+                    className="px-3 py-1.5 rounded-full border-2 border-ink/20 hover:border-ink text-sm font-semibold cursor-pointer"
+                  >
+                    {q}
+                  </button>
+                ))}
+              </div>
+            </div>
           ) : null}
 
-          {tab === "playlists" ? (
-            openPlaylist ? (
-              <div>
-                <button
-                  type="button"
-                  onClick={() => setOpenPlaylist(null)}
-                  className="flex items-center gap-1 px-2 py-2 text-sm font-semibold text-ink/70 hover:text-ink cursor-pointer"
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d="M15 6l-6 6 6 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  Library
-                </button>
-                <div className="flex items-center gap-3 px-2 pb-3">
-                  {openPlaylist.meta.liked ? (
-                    <LikedTile size="w-20 h-20" icon={34} />
-                  ) : smallestImage(openPlaylist.meta.images) ? (
-                    <img
-                      src={openPlaylist.meta.images[0].url}
-                      alt=""
-                      className="w-20 h-20 rounded-xl object-cover border-2 border-ink"
-                    />
-                  ) : null}
-                  <div className="min-w-0">
-                    <h3 className="font-[family-name:var(--font-display)] font-bold text-xl leading-tight line-clamp-2">
-                      {openPlaylist.meta.name}
-                    </h3>
-                    {openPlaylist.total ? (
-                      <p className="text-sm text-ink/60">{openPlaylist.total} songs</p>
-                    ) : null}
-                    <div className="flex gap-2 pt-2">
-                      <button
-                        type="button"
-                        onClick={() => playContext(openPlaylist.meta.uri, { shuffle: false })}
-                        disabled={!openPlaylist.meta.uri}
-                        className="sticker-btn bg-beak px-4 py-1.5 rounded-full font-bold text-sm cursor-pointer"
-                      >
-                        Play
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => playContext(openPlaylist.meta.uri, { shuffle: true })}
-                        disabled={!openPlaylist.meta.uri}
-                        className="sticker-btn bg-shell px-4 py-1.5 rounded-full font-bold text-sm cursor-pointer"
-                      >
-                        Shuffle
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                {openPlaylist.tracks === null ? (
-                  <Note>Loading songs…</Note>
-                ) : openPlaylist.tracks.length === 0 ? (
-                  openPlaylist.meta.failed ? (
-                    <Reconnect onReconnect={reconnect}>
-                      Reconnect Spotify to see your Liked Songs.
-                    </Reconnect>
-                  ) : (
-                    <Note>No songs here that Spotify can play.</Note>
-                  )
-                ) : (
-                  <>
-                    {openPlaylist.tracks.map((t, i) => (
+          {searching ? <Note>Searching…</Note> : null}
+
+          {results && !searching ? (
+            tracks.length + foundPlaylists.length + albums.length === 0 ? (
+              <Note>Nothing matched “{query}”. Try a different search.</Note>
+            ) : (
+              <>
+                {tracks.length ? (
+                  <Section title="Songs">
+                    {tracks.map((t) => (
                       <Row
-                        key={`${t.uri}-${i}`}
+                        key={t.id}
                         image={smallestImage(t.album?.images)}
                         title={t.name}
                         subtitle={artistNames(t.artists)}
                         meta={msToClock(t.duration_ms)}
                         active={t.uri === currentUri}
-                        onClick={() => playContext(openPlaylist.meta.uri, { startUri: t.uri })}
+                        onClick={() =>
+                          t.album?.uri
+                            ? playContext(t.album.uri, { startUri: t.uri })
+                            : playTracks([t.uri])
+                        }
                         onQueue={() => addToQueue(t)}
                       />
                     ))}
-                    {openPlaylist.next ? <LoadMore onLoad={loadMoreTracks} /> : null}
-                  </>
-                )}
-              </div>
-            ) : (
-              <div className="pt-2">
-                {lacks(LIBRARY_SCOPES) ? (
-                  <Reconnect onReconnect={reconnect}>
-                    Reconnect Spotify to see your Liked Songs here.
-                  </Reconnect>
-                ) : (
-                  <Row
-                    tile={<LikedTile />}
-                    title="Liked Songs"
-                    subtitle="Songs you've saved"
-                    onClick={showLiked}
-                  />
-                )}
-                {playlists === null ? (
-                  <Note>Loading your playlists…</Note>
-                ) : playlists.length === 0 ? (
-                  <Note>No playlists yet. Make one in Spotify and it&apos;ll show up here.</Note>
-                ) : null}
-                {(playlists || []).map((p) => (
-                  <Row
-                    key={p.id}
-                    image={smallestImage(p.images)}
-                    title={p.name}
-                    subtitle={`${p.tracks?.total ?? p.items?.total ?? 0} songs`}
-                    onClick={() => showPlaylist(p)}
-                  />
-                ))}
-                {playlistsNext ? <LoadMore onLoad={loadMorePlaylists} /> : null}
-              </div>
-            )
-          ) : null}
-
-          {tab === "recent" ? (
-            lacks(RECENT_SCOPES) || recentFailed ? (
-              <Reconnect onReconnect={reconnect}>
-                Reconnect Spotify to see what you played recently.
-              </Reconnect>
-            ) : recent === null ? (
-              <Note>Loading…</Note>
-            ) : recent.tracks.length === 0 ? (
-              <Note>Nothing played recently. Songs show up here after you listen.</Note>
-            ) : (
-              <div className="pt-2">
-                {recent.tracks.map((t) => (
-                  <Row
-                    key={t.id}
-                    image={smallestImage(t.album?.images)}
-                    title={t.name}
-                    subtitle={artistNames(t.artists)}
-                    meta={timeAgo(t.played_at)}
-                    active={t.uri === currentUri}
-                    onClick={() => playInAlbum(t)}
-                    onQueue={() => addToQueue(t)}
-                  />
-                ))}
-                {recent.next ? <LoadMore onLoad={loadMoreRecent} /> : null}
-              </div>
-            )
-          ) : null}
-
-          {tab === "queue" ? (
-            queue === null ? (
-              <Note>Loading…</Note>
-            ) : (
-              <>
-                {queue.currently_playing || currentName ? (
-                  <Section title="Now playing">
-                    <Row
-                      image={smallestImage((queue.currently_playing || playback?.track)?.album?.images)}
-                      title={(queue.currently_playing || playback.track).name}
-                      subtitle={artistNames((queue.currently_playing || playback.track).artists)}
-                      active
-                    />
+                    {results.tracks?.next ? (
+                      <LoadMore onLoad={() => loadMoreSearch("tracks")} />
+                    ) : null}
                   </Section>
                 ) : null}
-                {queue.queue?.length ? (
-                  <Section title="Next up">
-                    {queue.queue.slice(0, 30).map((t, i) => (
+                {foundPlaylists.length ? (
+                  <Section title="Playlists">
+                    {foundPlaylists.map((p) => (
                       <Row
-                        key={`${t.uri}-${i}`}
-                        image={smallestImage(t.album?.images || t.images)}
-                        title={t.name}
-                        subtitle={artistNames(t.artists) || t.show?.name}
-                        meta={msToClock(t.duration_ms)}
+                        key={p.id}
+                        image={smallestImage(p.images)}
+                        title={p.name}
+                        subtitle={p.owner?.display_name}
+                        onClick={() => playContext(p.uri)}
                       />
                     ))}
+                    {results.playlists?.next ? (
+                      <LoadMore onLoad={() => loadMoreSearch("playlists")} />
+                    ) : null}
                   </Section>
-                ) : (
-                  <Note>Nothing queued. Play an album or playlist to fill this up.</Note>
-                )}
+                ) : null}
+                {albums.length ? (
+                  <Section title="Albums">
+                    {albums.map((a) => (
+                      <Row
+                        key={a.id}
+                        image={smallestImage(a.images)}
+                        title={a.name}
+                        subtitle={artistNames(a.artists)}
+                        meta={a.release_date?.slice(0, 4)}
+                        onClick={() => playContext(a.uri)}
+                      />
+                    ))}
+                    {results.albums?.next ? (
+                      <LoadMore onLoad={() => loadMoreSearch("albums")} />
+                    ) : null}
+                  </Section>
+                ) : null}
               </>
             )
           ) : null}
-        </div>
+        </>
+      ) : null}
 
-          </>
-        )}
-
-        <div className="flex items-center justify-between gap-3 px-4 min-h-[var(--dock-h)] border-t-2 border-ink shrink-0">
-          <label className="flex items-center gap-2 text-sm font-semibold cursor-pointer">
+      {tab === "playlists" ? (
+        openPlaylist ? (
+          <div>
             <button
               type="button"
-              role="switch"
-              aria-checked={pauseOnBreaks}
-              onClick={() => setPauseOnBreaks(!pauseOnBreaks)}
-              className={`relative w-10 h-6 rounded-full border-2 border-ink cursor-pointer transition-colors shrink-0 ${
-                pauseOnBreaks ? "bg-yolk" : "bg-straw"
-              }`}
+              onClick={() => setOpenPlaylist(null)}
+              className="flex items-center gap-1 px-2 py-2 text-sm font-semibold text-ink/70 hover:text-ink cursor-pointer"
             >
-              <span
-                className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-ink transition-transform duration-200 ${
-                  pauseOnBreaks ? "translate-x-4" : "translate-x-0"
-                }`}
-              />
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M15 6l-6 6 6 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Library
             </button>
-            Pause music during breaks
-          </label>
-          <span className="flex items-center gap-1.5 text-xs text-ink/55">
-            <SpotifyMark size={14} /> Spotify
-          </span>
-        </div>
-      </div>
-    </div>
+            <div className="flex items-center gap-3 px-2 pb-3">
+              {openPlaylist.meta.liked ? (
+                <LikedTile size="w-20 h-20" icon={34} />
+              ) : smallestImage(openPlaylist.meta.images) ? (
+                <img
+                  src={openPlaylist.meta.images[0].url}
+                  alt=""
+                  className="w-20 h-20 rounded-xl object-cover border-2 border-ink"
+                />
+              ) : null}
+              <div className="min-w-0">
+                <h3 className="font-[family-name:var(--font-display)] font-bold text-xl leading-tight line-clamp-2">
+                  {openPlaylist.meta.name}
+                </h3>
+                {openPlaylist.total ? (
+                  <p className="text-sm text-ink/60">{openPlaylist.total} songs</p>
+                ) : null}
+                <div className="flex gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => playContext(openPlaylist.meta.uri, { shuffle: false })}
+                    disabled={!openPlaylist.meta.uri}
+                    className="sticker-btn bg-beak px-4 py-1.5 rounded-full font-bold text-sm cursor-pointer"
+                  >
+                    Play
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => playContext(openPlaylist.meta.uri, { shuffle: true })}
+                    disabled={!openPlaylist.meta.uri}
+                    className="sticker-btn bg-shell px-4 py-1.5 rounded-full font-bold text-sm cursor-pointer"
+                  >
+                    Shuffle
+                  </button>
+                </div>
+              </div>
+            </div>
+            {openPlaylist.tracks === null ? (
+              <Note>Loading songs…</Note>
+            ) : openPlaylist.tracks.length === 0 ? (
+              openPlaylist.meta.failed ? (
+                <Reconnect onReconnect={reconnect}>
+                  Reconnect Spotify to see your Liked Songs.
+                </Reconnect>
+              ) : (
+                <Note>No songs here that Spotify can play.</Note>
+              )
+            ) : (
+              <>
+                {openPlaylist.tracks.map((t, i) => (
+                  <Row
+                    key={`${t.uri}-${i}`}
+                    image={smallestImage(t.album?.images)}
+                    title={t.name}
+                    subtitle={artistNames(t.artists)}
+                    meta={msToClock(t.duration_ms)}
+                    active={t.uri === currentUri}
+                    onClick={() => playContext(openPlaylist.meta.uri, { startUri: t.uri })}
+                    onQueue={() => addToQueue(t)}
+                  />
+                ))}
+                {openPlaylist.next ? <LoadMore onLoad={loadMoreTracks} /> : null}
+              </>
+            )}
+          </div>
+        ) : (
+          <div className="pt-2">
+            {lacks(LIBRARY_SCOPES) ? (
+              <Reconnect onReconnect={reconnect}>
+                Reconnect Spotify to see your Liked Songs here.
+              </Reconnect>
+            ) : (
+              <Row
+                tile={<LikedTile />}
+                title="Liked Songs"
+                subtitle="Songs you've saved"
+                onClick={showLiked}
+              />
+            )}
+            {playlists === null ? (
+              <Note>Loading your playlists…</Note>
+            ) : playlists.length === 0 ? (
+              <Note>No playlists yet. Make one in Spotify and it&apos;ll show up here.</Note>
+            ) : null}
+            {(playlists || []).map((p) => (
+              <Row
+                key={p.id}
+                image={smallestImage(p.images)}
+                title={p.name}
+                subtitle={`${p.tracks?.total ?? p.items?.total ?? 0} songs`}
+                onClick={() => showPlaylist(p)}
+              />
+            ))}
+            {playlistsNext ? <LoadMore onLoad={loadMorePlaylists} /> : null}
+          </div>
+        )
+      ) : null}
+
+      {tab === "recent" ? (
+        lacks(RECENT_SCOPES) || recentFailed ? (
+          <Reconnect onReconnect={reconnect}>
+            Reconnect Spotify to see what you played recently.
+          </Reconnect>
+        ) : recent === null ? (
+          <Note>Loading…</Note>
+        ) : recent.tracks.length === 0 ? (
+          <Note>Nothing played recently. Songs show up here after you listen.</Note>
+        ) : (
+          <div className="pt-2">
+            {recent.tracks.map((t) => (
+              <Row
+                key={t.id}
+                image={smallestImage(t.album?.images)}
+                title={t.name}
+                subtitle={artistNames(t.artists)}
+                meta={timeAgo(t.played_at)}
+                active={t.uri === currentUri}
+                onClick={() => playInAlbum(t)}
+                onQueue={() => addToQueue(t)}
+              />
+            ))}
+            {recent.next ? <LoadMore onLoad={loadMoreRecent} /> : null}
+          </div>
+        )
+      ) : null}
+
+      {tab === "queue" ? (
+        queue === null ? (
+          <Note>Loading…</Note>
+        ) : (
+          <>
+            {queue.currently_playing || currentName ? (
+              <Section title="Now playing">
+                <Row
+                  image={smallestImage((queue.currently_playing || playback?.track)?.album?.images)}
+                  title={(queue.currently_playing || playback.track).name}
+                  subtitle={artistNames((queue.currently_playing || playback.track).artists)}
+                  active
+                />
+              </Section>
+            ) : null}
+            {queue.queue?.length ? (
+              <Section title="Next up">
+                {queue.queue.slice(0, 30).map((t, i) => (
+                  <Row
+                    key={`${t.uri}-${i}`}
+                    image={smallestImage(t.album?.images || t.images)}
+                    title={t.name}
+                    subtitle={artistNames(t.artists) || t.show?.name}
+                    meta={msToClock(t.duration_ms)}
+                  />
+                ))}
+              </Section>
+            ) : (
+              <Note>Nothing queued. Play an album or playlist to fill this up.</Note>
+            )}
+          </>
+        )
+      ) : null}
+    </BrowserShell>
   );
 }
