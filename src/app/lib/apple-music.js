@@ -15,14 +15,19 @@ const RENEW_BEFORE_MS = 24 * 60 * 60 * 1000;
 let cached = null; // { token, expiresAt }
 
 // The .p8 key, however it was pasted: on one line with literal \n (as in .env),
-// with real line breaks, or still wrapped in the quotes from .env (Vercel keeps
-// quotes as part of the value)
-const privateKeyPem = () =>
-  (process.env.APPLE_MUSIC_PRIVATE_KEY || "")
+// with real or \r\n line breaks, with the breaks turned into spaces, still
+// wrapped in the quotes from .env (Vercel keeps quotes as part of the value),
+// or just the base64 body without the BEGIN/END lines. Only the base64 body
+// matters, so it's pulled out and read as the raw PKCS#8 key.
+const privateKeyDer = () => {
+  const body = (process.env.APPLE_MUSIC_PRIVATE_KEY || "")
     .trim()
     .replace(/^(["'])([\s\S]*)\1$/, "$2")
-    .replace(/\\n/g, "\n")
-    .trim();
+    .replace(/\\[rn]/g, "\n")
+    .replace(/-----(BEGIN|END)[^-]*-----/g, "")
+    .replace(/[^A-Za-z0-9+/=]/g, "");
+  return Buffer.from(body, "base64");
+};
 
 const base64url = (obj) => Buffer.from(JSON.stringify(obj)).toString("base64url");
 
@@ -45,7 +50,7 @@ export function getDeveloperToken() {
     base64url({ iss: APPLE_MUSIC_TEAM_ID, iat: now, exp: now + LIFETIME_S });
   let key;
   try {
-    key = createPrivateKey(privateKeyPem());
+    key = createPrivateKey({ key: privateKeyDer(), format: "der", type: "pkcs8" });
   } catch (err) {
     throw new Error(`APPLE_MUSIC_PRIVATE_KEY isn't a readable .p8 key: ${err.message}`);
   }
