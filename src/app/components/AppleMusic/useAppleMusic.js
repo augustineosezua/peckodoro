@@ -236,11 +236,29 @@ export function useAppleMusic() {
   // The sign-in is saved to the Peckodoro account, not left in the browser.
   const authorize = useCallback(async () => {
     const mk = mkRef.current;
-    if (!mk) return false;
+    if (!mk) {
+      toast.error("Apple Music is still loading. Try again in a moment.");
+      return false;
+    }
+    // If the browser blocks Apple's sign-in window, MusicKit waits forever
+    // without an error, so say so once it's clearly not coming back
+    const blockedHint = setTimeout(
+      () =>
+        toast("Waiting for Apple Music sign-in…", {
+          id: "apple-music-popup",
+          description:
+            "If no Apple window opened, allow pop-ups for this site, then click Connect again.",
+          duration: 10000,
+        }),
+      4000
+    );
     try {
       await mk.authorize();
     } catch (err) {
       toast.error(friendlyError(err));
+    } finally {
+      clearTimeout(blockedHint);
+      toast.dismiss("apple-music-popup");
     }
     const token = mk.isAuthorized ? mk.musicUserToken : null;
     if (token) {
