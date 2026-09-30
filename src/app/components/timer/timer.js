@@ -1,53 +1,44 @@
 "use client";
 import { useEffect, useState } from "react";
 import useSound from "use-sound";
+import {
+  MODES,
+  addTime,
+  focusPerCycle,
+  formatClock,
+  isRunning,
+  newRound,
+  nextRound,
+  overdueBy,
+  pause,
+  readRound,
+  resume,
+  timeLeft,
+} from "./clock";
 
 const STORAGE_KEY = "peckodoro-timer";
-const MODES = ["Focus Time", "Short Break", "Long Break"];
 // Only ring for a round that ended just now, not one that ran out while the tab was closed
 const ALARM_GRACE = 3000;
-
-const minutesFor = (mode, settings) => {
-  switch (mode) {
-    case "Short Break":
-      return settings.shortBreak;
-    case "Long Break":
-      return settings.longBreak;
-    case "Focus Time":
-    default:
-      return settings.focusTime;
-  }
-};
-
-// The round is stored as time banked while paused plus when it was last started,
-// so the clock is worked out from timestamps and survives reloads and sleeping tabs
-const freshRound = (mode, focusDone, autoStart) => ({
-  mode,
-  focusDone,
-  banked: 0,
-  startedAt: autoStart ? Date.now() : null,
-});
+const ADD_STEP = 60 * 1000;
 
 function readSaved() {
   try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if (saved && MODES.includes(saved.mode)) return saved;
-  } catch {}
-  return null;
+    return readRound(JSON.parse(localStorage.getItem(STORAGE_KEY)));
+  } catch {
+    return null;
+  }
 }
 
 const Timer = (props) => {
   // ready: settings are the user's real ones, so an overdue round can be finished
   const { settings, onModeChange, ready = true } = props;
-  const [round, setRound] = useState(() => freshRound("Focus Time", 0, false));
+  const [round, setRound] = useState(() => newRound("Focus Time", 0));
   const [loaded, setLoaded] = useState(false);
   const [now, setNow] = useState(0);
 
-  const isRunning = round.startedAt !== null;
-  const elapsed =
-    round.banked + (isRunning ? Math.max(0, now - round.startedAt) : 0);
-  const duration = minutesFor(round.mode, settings) * 60 * 1000;
-  const timeLeft = Math.max(0, duration - elapsed);
+  const running = isRunning(round);
+  const left = timeLeft(round, settings, now);
+  const { minutes, seconds, text: clock } = formatClock(left);
 
   const [playSound] = useSound("/alarm1.mp3", {
     volume: 1,
@@ -67,70 +58,84 @@ const Timer = (props) => {
     } catch {}
   }, [round, loaded]);
 
+  // Another tab started, paused or skipped: follow it so both show the same clock.
+  // Writing back the same round doesn't fire another storage event, so this can't ping-pong.
   useEffect(() => {
-    if (!isRunning) return;
+    const onStorage = (e) => {
+      if (e.key !== STORAGE_KEY || !e.newValue) return;
+      try {
+        const saved = readRound(JSON.parse(e.newValue));
+        if (!saved) return;
+        setNow(Date.now());
+        setRound(saved);
+      } catch {}
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
+  useEffect(() => {
+    if (!running) return;
     setNow(Date.now());
     const id = setInterval(() => setNow(Date.now()), 250);
     return () => clearInterval(id);
-  }, [isRunning]);
+  }, [running]);
 
   useEffect(() => {
     onModeChange?.(round.mode);
   }, [round.mode]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const minutes = Math.floor(timeLeft / 60000);
-  const seconds = Math.floor((timeLeft % 60000) / 1000)
-    .toString()
-    .padStart(2, "0");
-
   useEffect(() => {
-    document.title = `${minutes}:${seconds} – ${round.mode}`;
-  }, [minutes, seconds, round.mode]);
-
-  const startRound = (mode, focusDone) => {
-    setRound(freshRound(mode, focusDone, settings.autoStart));
-  };
+    document.title = `${clock} – ${round.mode}`;
+  }, [clock, round.mode]);
 
   // Round over: move on to the next mode
   useEffect(() => {
-    if (!loaded || !ready || !isRunning || timeLeft > 0) return;
-    if (elapsed - duration < ALARM_GRACE) playSound();
-
-    let focusDone = round.focusDone;
-    if (round.mode === "Focus Time") focusDone++;
-    let next = round.mode === "Focus Time" ? "Short Break" : "Focus Time";
-    if (focusDone >= settings.focusBeforeLong) {
-      next = "Long Break";
-      focusDone = 0;
-    }
-    startRound(next, focusDone);
-  }, [timeLeft, isRunning, loaded, ready]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (!loaded || !ready || !running || left > 0) return;
+    const at = Date.now();
+    if (overdueBy(round, settings, at) < ALARM_GRACE) playSound();
+    setNow(at);
+    setRound(nextRound(round, settings, at));
+  }, [left, running, loaded, ready]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const pauseTimer = () => {
-    setRound((r) =>
-      r.startedAt === null
-        ? r
-        : { ...r, banked: r.banked + (Date.now() - r.startedAt), startedAt: null }
-    );
+    const at = Date.now();
+    setNow(at);
+    setRound((r) => pause(r, at));
   };
 
   const continueTimer = () => {
     const at = Date.now();
     setNow(at);
-    setRound((r) => (r.startedAt === null ? { ...r, startedAt: at } : r));
+    setRound((r) => resume(r, at));
   };
+
+  const skipRound = () => {
+    const at = Date.now();
+    setNow(at);
+    setRound((r) => nextRound(r, settings, at));
+  };
+
+  const addMinute = () => setRound((r) => addTime(r, ADD_STEP));
 
   const changeMode = (newMode) => {
     if (newMode === round.mode) return;
-    startRound(newMode, newMode === "Long Break" ? 0 : round.focusDone);
+    const at = Date.now();
+    setNow(at);
+    setRound(
+      newRound(
+        newMode,
+        newMode === "Long Break" ? 0 : round.focusDone,
+        settings.autoStart ? at : null
+      )
+    );
   };
 
-  const totalRounds = Math.min(Math.max(settings.focusBeforeLong || 1, 1), 12);
+  const totalRounds = Math.min(focusPerCycle(settings), 12);
   const filledRounds =
     round.mode === "Long Break"
       ? totalRounds
       : Math.min(round.focusDone, totalRounds);
-  const clock = `${minutes}:${seconds}`;
   const digits = clock.split("").map((ch, i) => (
     <span key={i} className={ch === ":" ? "clock-colon" : "clock-digit"}>
       {ch}
@@ -188,15 +193,30 @@ const Timer = (props) => {
         ))}
       </div>
 
-      <button
-        onClick={!isRunning ? continueTimer : pauseTimer}
-        data-tour="start"
-        className={`sticker-btn min-w-48 px-10 py-3 rounded-full text-xl font-bold cursor-pointer ${
-          isRunning ? "bg-shell text-ink" : "bg-beak text-ink"
-        }`}
-      >
-        {isRunning ? "Pause" : round.banked > 0 ? "Continue" : "Start"}
-      </button>
+      <div className="flex items-center gap-3 sm:gap-4" data-tour="start">
+        <button
+          onClick={addMinute}
+          aria-label="Add one minute"
+          className="sticker-btn bg-shell text-ink px-4 py-2 rounded-full text-sm font-bold cursor-pointer"
+        >
+          +1 min
+        </button>
+        <button
+          onClick={running ? pauseTimer : continueTimer}
+          className={`sticker-btn min-w-36 sm:min-w-48 px-8 sm:px-10 py-3 rounded-full text-xl font-bold cursor-pointer ${
+            running ? "bg-shell text-ink" : "bg-beak text-ink"
+          }`}
+        >
+          {running ? "Pause" : round.banked > 0 ? "Continue" : "Start"}
+        </button>
+        <button
+          onClick={skipRound}
+          aria-label={`Skip ${round.mode}`}
+          className="sticker-btn bg-shell text-ink px-4 py-2 rounded-full text-sm font-bold cursor-pointer"
+        >
+          Skip
+        </button>
+      </div>
     </div>
   );
 };

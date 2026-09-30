@@ -20,7 +20,7 @@ const STEPS = [
   {
     target: "start",
     title: "Start the clock",
-    body: "Start and pause here. The timer keeps going if you reload or close the tab.",
+    body: "Start and pause here, add a minute if you need it, or skip to the next round. The timer keeps going if you reload or close the tab.",
   },
   {
     target: "rounds",
